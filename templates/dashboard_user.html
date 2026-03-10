@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rent Hub user dashboard - browse services, manage rentals, and approve employees.">
+    <title>Dashboard — Rent Hub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+</head>
+
+<body class="dashboard-body">
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="nav-brand-icon">🏠</div>
+            <span>Rent Hub</span>
+        </div>
+        <div class="nav-actions">
+            <div class="nav-user-info">
+                <div class="nav-avatar">{{ session.get('username', 'U')[0] }}</div>
+                <span class="nav-username">{{ session.get('username') }}</span>
+                <span class="nav-role">USER</span>
+            </div>
+            <a href="{{ url_for('logout') }}" class="btn-nav-logout" id="logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="dashboard-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul class="flash-messages">
+            {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+        <div class="dashboard-welcome">
+            <h1>Welcome back, <span class="highlight">{{ session.get('username') }}</span></h1>
+            <p>Your personalized rental hub and activity overview.</p>
+        </div>
+
+        <!-- Admin Messages -->
+        {% if user_messages %}
+        <div class="section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="icon">⚠️</span> Admin Messages
+                    </div>
+                    <span class="badge badge-pending">{{ user_messages|length }} message{{ 's' if user_messages|length > 1 else '' }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="messages-list">
+                        {% for msg in user_messages %}
+                        <div class="message-item">{{ msg.message }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+
+        <!-- Pending Employee Approvals -->
+        {% if pending_employees %}
+        <div class="section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="icon"><i class="fa-solid fa-users-gear"></i></span> Pending Employee Registrations
+                    </div>
+                    <span class="badge badge-pending">{{ pending_employees|length }} pending</span>
+                </div>
+                <div class="card-body">
+                    <div class="pending-grid">
+                        {% for emp in pending_employees %}
+                        <div class="pending-card">
+                            <h4>{{ emp.username }}</h4>
+                            <p class="detail"><strong>Gmail ID:</strong> {{ emp.gmail }}</p>
+                            <p class="detail"><strong>Skills:</strong> {{ emp.work_details }}</p>
+                            <form action="{{ url_for('accept_employee', emp_id=emp.id) }}" method="POST" style="margin-top: 14px;">
+                                <button type="submit" class="btn btn-success btn-sm btn-block" id="accept-emp-{{ emp.id }}">✓ Accept Employee</button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Available Services -->
+        <div class="section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="icon"><i class="fa-solid fa-layer-group"></i></span> Available Services & Rentals
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
+                        Browse our premium collection of available rentals and services.
+                    </p>
+                    <div class="services-grid">
+                        <!-- Service 1 -->
+                        <a href="{{ url_for('view_service', service_name='Catering') }}" class="service-card" style="text-decoration: none; color: inherit; cursor: pointer; display: block;">
+                            <div class="service-icon-area" style="background: linear-gradient(135deg, #2d3436, #000000);">
+                                <i class="fa-solid fa-utensils fa-3x" style="color: #ff9f43;"></i>
+                            </div>
+                            <div class="service-details">
+                                <h4>Premium Catering</h4>
+                                <p>High-quality event catering with customizable menus and professional staff.</p>
+                                <div class="service-tags">
+                                    <span class="tag">Food & Events</span>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Service 2 -->
+                        <a href="{{ url_for('view_service', service_name='Plumbing') }}" class="service-card" style="text-decoration: none; color: inherit; cursor: pointer; display: block;">
+                            <div class="service-icon-area" style="background: linear-gradient(135deg, #2c3e50, #3498db);">
+                                <i class="fa-solid fa-faucet-drip fa-3x" style="color: #48dbfb;"></i>
+                            </div>
+                            <div class="service-details">
+                                <h4>Expert Plumbing</h4>
+                                <p>Fast, reliable plumbing repair and installation for all spaces.</p>
+                                <div class="service-tags">
+                                    <span class="tag">Maintenance</span>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Service 3 -->
+                        <a href="{{ url_for('view_service', service_name='Electrician') }}" class="service-card" style="text-decoration: none; color: inherit; cursor: pointer; display: block;">
+                            <div class="service-icon-area" style="background: linear-gradient(135deg, #192a56, #273c75);">
+                                <i class="fa-solid fa-bolt fa-3x" style="color: #feca57;"></i>
+                            </div>
+                            <div class="service-details">
+                                <h4>Certified Electrician</h4>
+                                <p>Professional electrical diagnostics, wiring, panels, and emergency repairs.</p>
+                                <div class="service-tags">
+                                    <span class="tag">Repair</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>

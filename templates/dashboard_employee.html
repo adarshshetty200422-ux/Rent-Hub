@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Employee dashboard for Rent Hub - manage your profile, availability, and view messages.">
+    <title>Employee Dashboard — Rent Hub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+</head>
+
+<body class="dashboard-body">
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="nav-brand-icon">🏠</div>
+            <span>Rent Hub</span>
+        </div>
+        <div class="nav-actions">
+            <div class="nav-user-info" onclick="toggleProfile()" style="cursor: pointer;" id="profile-btn">
+                <div class="nav-avatar">{{ session.get('username', 'E')[0] }}</div>
+                <span class="nav-username">{{ session.get('username') }}</span>
+                <span class="nav-role" style="background: rgba(0, 206, 201, 0.15); color: var(--accent);">EMPLOYEE</span>
+            </div>
+            <a href="{{ url_for('logout') }}" class="btn-nav-logout" id="logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="dashboard-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul class="flash-messages">
+            {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+        <div class="dashboard-welcome">
+            <h1>Welcome back, <span class="highlight">{{ session.get('username') }}</span></h1>
+            <p>Manage your profile and view updates from here.</p>
+        </div>
+
+        {% if employee %}
+        <div class="employee-layout">
+            <!-- Left: Employee Info -->
+            <div>
+                <div class="info-card">
+                    <h3><i class="fa-solid fa-id-card"></i> Employee Info</h3>
+                    <div class="info-list">
+                        <div class="info-row">
+                            <span class="info-label">Username</span>
+                            <span class="info-value">{{ employee.username }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Role Status</span>
+                            <span class="info-value" style="color: var(--success); text-transform: capitalize;">{{ employee.account_status }} Employee</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Gmail ID</span>
+                            <span class="info-value">{{ employee.gmail }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Work Details</span>
+                            <span class="info-value">{{ employee.work_details }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Availability</span>
+                            <form action="{{ url_for('update_employee_availability') }}" method="POST" style="margin: 0;">
+                                <select name="availability" onchange="this.form.submit()"
+                                    style="color: {{ 'var(--success)' if employee.availability == 'Available' else 'var(--danger)' }};"
+                                    id="availability-select">
+                                    <option value="Available" style="color: black;" {% if employee.availability=='Available' %}selected{% endif %}>Available</option>
+                                    <option value="Not Available" style="color: black;" {% if employee.availability=='Not Available' %}selected{% endif %}>Not Available</option>
+                                </select>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Messages -->
+            <div>
+                {% if emp_messages %}
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span class="icon">⚠️</span> Messages
+                        </div>
+                        <span class="badge badge-pending">{{ emp_messages|length }}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="messages-list">
+                            {% for msg in emp_messages %}
+                            <div class="message-item">{{ msg.message }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="card">
+                    <div class="card-body">
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <p>No messages yet. You're all caught up!</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal">
+            <button class="modal-close" onclick="toggleProfile()" id="close-profile-modal">&times;</button>
+            <h3>Personal Details</h3>
+
+            {% if employee %}
+            <div class="profile-details">
+                <div class="profile-row">
+                    <span class="label">Username</span>
+                    <span class="value">{{ employee.username }}</span>
+                </div>
+                <div class="profile-row">
+                    <span class="label">Role</span>
+                    <span class="value" style="color: var(--success); text-transform: capitalize;">{{ employee.account_status }} Employee</span>
+                </div>
+                <div class="profile-row">
+                    <span class="label">Gmail ID</span>
+                    <span class="value">{{ employee.gmail }}</span>
+                </div>
+                <div class="profile-row">
+                    <span class="label">Work Details</span>
+                    <span class="value">{{ employee.work_details }}</span>
+                </div>
+                <div class="profile-row">
+                    <span class="label">Availability</span>
+                    <span class="value" style="color: {{ 'var(--success)' if employee.availability == 'Available' else 'var(--danger)' }};">{{ employee.availability or 'Available' }}</span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-block" onclick="toggleProfile(); toggleEditProfile();" id="edit-profile-btn">
+                <i class="fa-solid fa-pen-to-square"></i> Edit Profile
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal-overlay" id="editProfileModal">
+        <div class="modal">
+            <button class="modal-close" onclick="toggleEditProfile()" id="close-edit-modal">&times;</button>
+            <h3>Update Profile</h3>
+
+            {% if employee %}
+            <form action="{{ url_for('update_employee') }}" method="POST" class="modal-form">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" value="{{ employee.username }}" required>
+                </div>
+                <div class="form-group">
+                    <label>New Password <span class="hint">(leave empty to keep current)</span></label>
+                    <input type="password" name="password" placeholder="Enter new password...">
+                </div>
+                <div class="form-group">
+                    <label>Gmail ID</label>
+                    <input type="email" name="gmail" value="{{ employee.gmail }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Work Details</label>
+                    <div class="checkbox-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 5px;">
+                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Catering" {% if 'Catering' in employee.work_details %}checked{% endif %}> Catering</label>
+                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Plumbing" {% if 'Plumbing' in employee.work_details %}checked{% endif %}> Plumbing</label>
+                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Electrician" {% if 'Electrician' in employee.work_details %}checked{% endif %}> Electrician</label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success btn-block" id="save-profile-btn">
+                    <i class="fa-solid fa-check"></i> Save Changes
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function toggleProfile() {
+            const modal = document.getElementById('profileModal');
+            modal.classList.toggle('active');
+        }
+
+        function toggleEditProfile() {
+            const modal = document.getElementById('editProfileModal');
+            modal.classList.toggle('active');
+        }
+
+        // Close modals on backdrop click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>

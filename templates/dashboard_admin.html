@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Admin dashboard for Rent Hub - manage users, employees, and service requests.">
+    <title>Admin Dashboard — Rent Hub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+</head>
+
+<body class="dashboard-body">
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="nav-brand-icon">🏠</div>
+            <span>Rent Hub</span>
+        </div>
+        <div class="nav-actions">
+            <div class="nav-user-info" onclick="toggleProfile()" style="cursor: pointer;" id="profile-btn">
+                <div class="nav-avatar">{{ session.get('username', 'A')[0] }}</div>
+                <span class="nav-username">{{ session.get('username') }}</span>
+                <span class="nav-role">ADMIN</span>
+            </div>
+            <a href="{{ url_for('logout') }}" class="btn-nav-logout" id="logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="dashboard-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul class="flash-messages">
+            {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+        <div class="dashboard-welcome">
+            <h1>Welcome back, <span class="highlight">{{ session.get('username') }}</span></h1>
+            <p>Full administrative control panel. Manage users, employees, and requests.</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon purple"><i class="fa-solid fa-users"></i></div>
+                <div>
+                    <div class="stat-label">Total Users</div>
+                    <div class="stat-value">{{ users|length }}</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon teal"><i class="fa-solid fa-user-tie"></i></div>
+                <div>
+                    <div class="stat-label">Employees</div>
+                    <div class="stat-value">{{ employees|length }}</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon amber"><i class="fa-solid fa-clock"></i></div>
+                <div>
+                    <div class="stat-label">Pending</div>
+                    <div class="stat-value">{{ pending_employees|length }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accordion Sections -->
+        <!-- Users -->
+        <div class="section">
+            <div class="card accordion-card">
+                <div class="card-header accordion-header" onclick="toggleAccordion('users-content', this)" id="users-toggle">
+                    <div class="card-title">
+                        <span class="icon"><i class="fa-solid fa-users"></i></span> Users
+                        <span class="badge badge-approved">{{ users|length }} registered</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+                </div>
+                <div class="accordion-content" id="users-content">
+                    <div class="card-body no-pad">
+                        <div style="overflow-x: auto;">
+                            <table class="data-table" id="users-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Username</th>
+                                        <th>Account Status</th>
+                                        <th>Online Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if users %}
+                                    {% for user in users %}
+                                    <tr>
+                                        <td>{{ user.id }}</td>
+                                        <td>
+                                            <a href="{{ url_for('admin_user_details', user_id=user.id) }}" class="user-link">
+                                                {{ user.username }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            {% if user.account_status == 'blocked' %}
+                                            <span class="badge badge-blocked" style="color: var(--danger); background: rgba(255, 107, 107, 0.15); padding: 4px 10px; border-radius: 999px; font-size: 11px;">Blocked</span>
+                                            {% else %}
+                                            <span class="badge badge-approved" style="color: var(--success); background: rgba(0, 184, 148, 0.15); padding: 4px 10px; border-radius: 999px; font-size: 11px;">Active</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if user.is_online %}
+                                            <span style="color: var(--success); font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                                                <span style="width: 8px; height: 8px; background: var(--success); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px var(--success);"></span>
+                                                Online
+                                            </span>
+                                            {% else %}
+                                            <span style="color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                                                <span style="width: 8px; height: 8px; background: var(--text-muted); border-radius: 50%; display: inline-block;"></span>
+                                                Offline
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="2">
+                                            <div class="empty-state">
+                                                <div class="empty-icon">👤</div>
+                                                <p>No users found.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Employees -->
+        <div class="section">
+            <div class="card accordion-card">
+                <div class="card-header accordion-header" onclick="toggleAccordion('employees-content', this)" id="employees-toggle">
+                    <div class="card-title">
+                        <span class="icon"><i class="fa-solid fa-user-tie"></i></span> Employees
+                        <span class="badge badge-approved">{{ employees|length }} active</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+                </div>
+                <div class="accordion-content" id="employees-content">
+                    <div class="card-body no-pad">
+                        <div style="overflow-x: auto;">
+                            <table class="data-table" id="employees-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Username</th>
+                                        <th>Account Status</th>
+                                        <th>Availability</th>
+                                        <th>Online Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if employees %}
+                                    {% for emp in employees %}
+                                    <tr>
+                                        <td>{{ emp.id }}</td>
+                                        <td>
+                                            <a href="{{ url_for('admin_employee_details', emp_id=emp.id) }}" class="user-link">
+                                                {{ emp.username }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            {% if emp.account_status == 'blocked' %}
+                                            <span class="badge badge-blocked" style="color: var(--danger); background: rgba(255, 107, 107, 0.15); padding: 4px 10px; border-radius: 999px; font-size: 11px;">Blocked</span>
+                                            {% else %}
+                                            <span class="badge badge-approved" style="color: var(--success); background: rgba(0, 184, 148, 0.15); padding: 4px 10px; border-radius: 999px; font-size: 11px;">Active</span>
+                                            {% endif %}
+                                        </td>
+                                        <td style="color: {{ 'var(--success)' if emp.availability == 'Available' else 'var(--text-muted)' }}; font-weight: 500;">
+                                            {{ emp.availability or 'Not specified' }}
+                                        </td>
+                                        <td>
+                                            {% if emp.is_online %}
+                                            <span style="color: var(--success); font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                                                <span style="width: 8px; height: 8px; background: var(--success); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px var(--success);"></span>
+                                                Online
+                                            </span>
+                                            {% else %}
+                                            <span style="color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                                                <span style="width: 8px; height: 8px; background: var(--text-muted); border-radius: 50%; display: inline-block;"></span>
+                                                Offline
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="2">
+                                            <div class="empty-state">
+                                                <div class="empty-icon">👷</div>
+                                                <p>No employees found.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Employee Requests -->
+        <div class="section">
+            <div class="card accordion-card">
+                <div class="card-header accordion-header" onclick="toggleAccordion('pending-content', this)" id="pending-toggle">
+                    <div class="card-title">
+                        <span class="icon"><i class="fa-solid fa-user-clock"></i></span> Pending Employee Requests
+                        {% if pending_employees %}
+                        <span class="badge badge-pending">{{ pending_employees|length }} pending</span>
+                        {% endif %}
+                    </div>
+                    <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+                </div>
+                <div class="accordion-content" id="pending-content">
+                    <div class="card-body no-pad">
+                        <div style="overflow-x: auto;">
+                            <table class="data-table" id="pending-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Username</th>
+                                        <th>Gmail ID</th>
+                                        <th>Work Details</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if pending_employees %}
+                                    {% for emp in pending_employees %}
+                                    <tr>
+                                        <td>{{ emp.id }}</td>
+                                        <td style="font-weight: 600;">{{ emp.username }}</td>
+                                        <td>{{ emp.gmail }}</td>
+                                        <td>{{ emp.work_details }}</td>
+                                        <td>
+                                            <div class="table-actions">
+                                                <form action="{{ url_for('admin_accept_employee', emp_id=emp.id) }}" method="POST">
+                                                    <button type="submit" class="btn btn-success btn-sm" id="accept-pending-{{ emp.id }}">Accept</button>
+                                                </form>
+                                                <form action="{{ url_for('admin_reject_employee', emp_id=emp.id) }}" method="POST">
+                                                    <button type="submit" class="btn btn-danger btn-sm" id="reject-pending-{{ emp.id }}">Reject</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5">
+                                            <div class="empty-state">
+                                                <div class="empty-icon">✅</div>
+                                                <p>No pending requests. All caught up!</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal">
+            <button class="modal-close" onclick="toggleProfile()" id="close-profile-modal">&times;</button>
+            <h3><i class="fa-solid fa-user-gear"></i> Admin Profile</h3>
+
+            <div class="profile-details">
+                <div class="profile-row">
+                    <span class="label">Username</span>
+                    <span class="value">{{ admin_info.username }}</span>
+                </div>
+                <div class="profile-row">
+                    <span class="label">Role</span>
+                    <span class="value" style="color: var(--primary-light);">Administrator</span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-block" onclick="toggleProfile(); toggleEditProfile();" id="edit-admin-profile-btn">
+                <i class="fa-solid fa-pen-to-square"></i> Edit Profile
+            </button>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal-overlay" id="editProfileModal">
+        <div class="modal">
+            <button class="modal-close" onclick="toggleEditProfile()" id="close-edit-modal">&times;</button>
+            <h3><i class="fa-solid fa-pen-to-square"></i> Update Profile</h3>
+
+            <form action="{{ url_for('update_admin') }}" method="POST" class="modal-form">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" value="{{ admin_info.username }}" required>
+                </div>
+                <div class="form-group">
+                    <label>New Password <span class="hint">(leave empty to keep current)</span></label>
+                    <input type="password" name="password" placeholder="Enter new password...">
+                </div>
+
+                <button type="submit" class="btn btn-success btn-block" id="save-admin-profile-btn">
+                    <i class="fa-solid fa-check"></i> Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleProfile() {
+            document.getElementById('profileModal').classList.toggle('active');
+        }
+
+        function toggleEditProfile() {
+            document.getElementById('editProfileModal').classList.toggle('active');
+        }
+
+        function toggleAccordion(contentId, headerEl) {
+            var content = document.getElementById(contentId);
+            var isOpen = content.classList.contains('open');
+            content.classList.toggle('open');
+            headerEl.classList.toggle('active');
+        }
+
+        // Close modals on backdrop click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>

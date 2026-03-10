@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Admin view of employee details and management actions.">
+    <title>Employee Details — Rent Hub Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+</head>
+
+<body class="dashboard-body">
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="nav-brand-icon">🏠</div>
+            <span>Rent Hub</span>
+        </div>
+        <div class="nav-actions">
+            <a href="{{ url_for('dashboard_admin') }}" class="btn-nav-profile" id="back-to-dashboard">
+                <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn-nav-logout" id="logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+        </div>
+    </nav>
+
+    <div class="details-page">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul class="flash-messages">
+            {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+        <div class="details-header">
+            <h1><i class="fa-solid fa-user-tie"></i> {{ employee.username }}</h1>
+        </div>
+
+        <!-- Profile Info Card -->
+        <div class="section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="icon"><i class="fa-solid fa-id-card"></i></span> Profile Information
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="profile-details">
+                        <div class="profile-row">
+                            <span class="label">Username</span>
+                            <span class="value">{{ employee.username }}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="label">Password</span>
+                            <span class="value" style="font-family: 'Courier New', monospace; color: var(--warning);">{{ employee.password }}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="label">Gmail ID</span>
+                            <span class="value">{{ employee.gmail }}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="label">Work Details</span>
+                            <span class="value">{{ employee.work_details }}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="label">Availability</span>
+                            <span class="value" style="color: {{ 'var(--success)' if employee.availability == 'Available' else 'var(--danger)' }};">
+                                {{ employee.availability or 'Available' }}
+                            </span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="label">Account Status</span>
+                            {% if employee.account_status == 'blocked' %}
+                            <span class="badge badge-blocked">Blocked</span>
+                            {% else %}
+                            <span class="badge badge-approved">{{ employee.account_status }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions Grid -->
+        <div class="details-grid">
+            <!-- Send Warning -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title" style="color: var(--warning);">
+                        <span class="icon"><i class="fa-solid fa-triangle-exclamation"></i></span> Send Warning
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('admin_warn_employee', emp_id=employee.id) }}" method="POST" style="display: flex; flex-direction: column; gap: 14px;">
+                        <div class="form-group">
+                            <textarea name="warning_message" rows="4" placeholder="Type a warning message. The employee will see this in their portal..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-warning btn-block" id="send-warning-btn">
+                            <i class="fa-solid fa-paper-plane"></i> Send Warning
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Block/Unblock -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title" style="color: var(--danger);">
+                        <span class="icon"><i class="fa-solid fa-shield-halved"></i></span> Admin Actions
+                    </div>
+                </div>
+                <div class="card-body" style="display: flex; flex-direction: column; height: 100%;">
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px; flex: 1;">
+                        {% if employee.account_status == 'blocked' %}
+                        This employee is currently <strong style="color: var(--danger);">blocked</strong> and cannot access the system. Unblocking will restore their access.
+                        {% else %}
+                        Blocking this employee will prevent them from logging in and accessing their dashboard.
+                        {% endif %}
+                    </p>
+                    <form action="{{ url_for('admin_toggle_block', user_id=employee.id) }}" method="POST">
+                        {% if employee.account_status == 'blocked' %}
+                        <button type="submit" class="btn btn-success btn-block" id="toggle-block-btn">
+                            <i class="fa-solid fa-lock-open"></i> Unblock Employee
+                        </button>
+                        {% else %}
+                        <button type="submit" class="btn btn-danger btn-block" id="toggle-block-btn">
+                            <i class="fa-solid fa-ban"></i> Block Employee
+                        </button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

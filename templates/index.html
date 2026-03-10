@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rent Hub - Your premium rental services management platform. Access admin, employee, or user portals.">
+    <title>Rent Hub — Premium Rental Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+</head>
+
+<body class="auth-body">
+    <div class="auth-container" id="main-container">
+        <div class="logo">
+            <div class="logo-icon">🏠</div>
+            <div class="logo-text">Rent Hub</div>
+        </div>
+
+        <h2>Welcome Back</h2>
+        <p class="subtitle">Sign in to your account</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul class="flash-messages">
+            {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('login') }}" method="POST" class="auth-form" autocomplete="off">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="auth_user" placeholder="Enter your username" required autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="auth_pass" placeholder="Enter your password" required autocomplete="new-password">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" style="width: 100%; padding: 12px; font-size: 1rem; border-radius: 8px; border: none; background: #6366f1; color: white; cursor: pointer; transition: background 0.3s; margin-top: 10px;">Sign In</button>
+            <div style="margin-top: 20px; text-align: center; color: #64748b; font-size: 0.9rem;">
+                <a href="{{ url_for('user') }}" style="color: #6366f1; text-decoration: none; font-weight: 500;">Register as User</a>
+                &bull;
+                <a href="{{ url_for('employee') }}" style="color: #6366f1; text-decoration: none; font-weight: 500;">Register as Employee</a>
+            </div>
+        </form>
+    </div>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>
