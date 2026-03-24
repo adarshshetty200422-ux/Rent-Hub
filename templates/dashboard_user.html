@@ -68,6 +68,45 @@
         </div>
         {% endif %}
 
+        <!-- Wallet / Deposit Section -->
+        <div class="section">
+            <div class="card" style="max-width: 500px;">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="icon"><i class="fa-solid fa-wallet"></i></span> Advance Deposit Wallet
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="info-list">
+                        <div class="info-row" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
+                            <span class="info-label" style="font-weight: 600;">Current Balance</span>
+                            <span class="info-value {{ 'text-success' if (user_info.deposit_balance or 0) >= 2000 else 'text-danger' }}" style="font-weight: 600; font-size: 1.2rem;">₹{{ user_info.deposit_balance or 0.0 }}</span>
+                        </div>
+                        <div style="border-bottom: 2px solid #eee; margin-bottom: 15px;"></div>
+                        
+                        <div style="display: flex; flex-wrap: wrap; gap: 30px;">
+                            <!-- Deposit Section -->
+                            <div style="flex: 1; min-width: 250px;">
+                                <span class="info-label" style="display: block; margin-bottom: 10px; font-size: 0.85rem; color: #666;">Add Funds (Min ₹2000)</span>
+                                <form action="{{ url_for('user_add_deposit') }}" method="POST" style="margin: 0; display: flex; gap: 10px;">
+                                    <input type="number" name="amount" min="2000" step="1" required placeholder="Amount to deposit" class="form-control" style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background-color: var(--card-bg); color: var(--text);">
+                                    <button type="submit" class="btn btn-success"><i class="fa-solid fa-plus"></i> Deposit</button>
+                                </form>
+                            </div>
+                            
+                            <!-- Withdraw Section -->
+                            <div style="flex: 1; min-width: 250px;">
+                                <span class="info-label" style="display: block; margin-bottom: 10px; font-size: 0.85rem; color: #666;">Withdraw Funds</span>
+                                <form action="{{ url_for('user_withdraw_deposit') }}" method="POST" style="margin: 0; display: flex; gap: 10px;">
+                                    <input type="number" name="amount" min="1" step="1" max="{{ user_info.deposit_balance or 0 }}" required placeholder="Amount to withdraw" class="form-control" style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background-color: var(--card-bg); color: var(--text);">
+                                    <button type="submit" class="btn btn-danger" {% if (user_info.deposit_balance or 0) == 0 %}disabled{% endif %}><i class="fa-solid fa-minus"></i> Withdraw</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Pending Employee Approvals -->
         {% if pending_employees %}

@@ -77,6 +77,8 @@
                         </div>
                         {% if provider.availability == 'Booked' %}
                             <button class="btn btn-secondary btn-block" style="width: 100%; text-align: center; cursor: not-allowed; opacity: 0.7;" disabled><i class="fa-solid fa-ban"></i> Booked</button>
+                        {% elif (provider.deposit_balance or 0) < 2000 %}
+                            <button class="btn btn-secondary btn-block" style="width: 100%; text-align: center; cursor: not-allowed; opacity: 0.7;" disabled><i class="fa-solid fa-ban"></i> Not Accepting Requests</button>
                         {% else %}
                             <a href="{{ url_for('user_employee_details', emp_id=provider.id) }}" class="btn btn-primary btn-block" style="width: 100%; text-align: center; text-decoration: none;"><i class="fa-solid fa-user"></i> View Profile & Book</a>
                         {% endif %}

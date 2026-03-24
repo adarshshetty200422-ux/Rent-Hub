@@ -90,14 +90,26 @@
                     <div class="info-list">
                         <div class="info-row">
                             <span class="info-label">Current Balance</span>
-                            <span class="info-value {{ 'text-success' if (employee.deposit_balance or 0) >= 500 else 'text-danger' }}" style="font-weight: 600;">₹{{ employee.deposit_balance or 0.0 }}</span>
+                            <span class="info-value {{ 'text-success' if (employee.deposit_balance or 0) >= 2000 else 'text-danger' }}" style="font-weight: 600;">₹{{ employee.deposit_balance or 0.0 }}</span>
                         </div>
+                        <div class="info-row" style="border-bottom: 2px solid #eee; padding-bottom: 5px;"></div>
+                        
+                        <!-- Deposit Section -->
                         <div class="info-row" style="border-bottom: none; padding-bottom: 0;">
-                            <span class="info-label" style="display: block; margin-bottom: 10px; font-size: 0.85rem; color: #666;">Add Funds (Min ₹500 required to accept new requests)</span>
+                            <span class="info-label" style="display: block; margin-bottom: 10px; font-size: 0.85rem; color: #666;">Add Funds (Min ₹2000 required to accept new requests)</span>
                         </div>
-                        <form action="{{ url_for('add_deposit') }}" method="POST" style="margin: 0; display: flex; gap: 10px;">
-                            <input type="number" name="amount" min="1" step="1" required placeholder="Amount" style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background-color: var(--card-bg); color: var(--text);">
-                            <button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-plus"></i> Add Payment</button>
+                        <form action="{{ url_for('add_deposit') }}" method="POST" style="margin: 0; display: flex; gap: 10px; margin-bottom: 15px;">
+                            <input type="number" name="amount" min="2000" step="1" required placeholder="Amount to deposit" style="width: 180px; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background-color: var(--card-bg); color: var(--text);">
+                            <button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-plus"></i> Deposit</button>
+                        </form>
+                        
+                        <!-- Withdraw Section -->
+                        <div class="info-row" style="border-bottom: none; padding-bottom: 0; padding-top: 5px;">
+                            <span class="info-label" style="display: block; margin-bottom: 10px; font-size: 0.85rem; color: #666;">Withdraw Funds</span>
+                        </div>
+                        <form action="{{ url_for('withdraw_deposit') }}" method="POST" style="margin: 0; display: flex; gap: 10px;">
+                            <input type="number" name="amount" min="1" step="1" max="{{ employee.deposit_balance or 0 }}" required placeholder="Amount to withdraw" style="width: 180px; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background-color: var(--card-bg); color: var(--text);">
+                            <button type="submit" class="btn btn-danger btn-sm" {% if (employee.deposit_balance or 0) == 0 %}disabled{% endif %}><i class="fa-solid fa-minus"></i> Withdraw</button>
                         </form>
                     </div>
                 </div>

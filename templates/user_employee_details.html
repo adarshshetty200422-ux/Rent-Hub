@@ -66,6 +66,10 @@
                             <span class="value" style="color: var(--text-secondary);">{{ employee.work_details }}</span>
                         </div>
                         <div class="profile-row" style="display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border);">
+                            <span class="label" style="font-weight: 600; color: var(--text-primary);"><i class="fa-solid fa-shield-halved"></i> Security Deposit Maintained</span>
+                            <span class="value" style="color: var(--success); font-weight: 600;">₹{{ employee.deposit_balance or 0.0 }}</span>
+                        </div>
+                        <div class="profile-row" style="display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border);">
                             <span class="label" style="font-weight: 600; color: var(--text-primary);"><i class="fa-solid fa-clock"></i> Availability</span>
                             <span class="value {{ 'text-success' if employee.availability == 'Available' else 'text-danger' }}" style="font-weight: 600;">
                                 {{ employee.availability or 'Not specified' }}
@@ -84,6 +88,10 @@
                     {% if employee.availability == 'Booked' %}
                     <button type="button" class="btn btn-secondary btn-block" style="width: 100%; font-size: 16px; padding: 14px; cursor: not-allowed; opacity: 0.7;" disabled>
                         <i class="fa-solid fa-ban"></i> Currently Booked
+                    </button>
+                    {% elif (employee.deposit_balance or 0) < 2000 %}
+                    <button type="button" class="btn btn-secondary btn-block" style="width: 100%; font-size: 16px; padding: 14px; cursor: not-allowed; opacity: 0.7;" disabled>
+                        <i class="fa-solid fa-ban"></i> Not Accepting Requests
                     </button>
                     {% else %}
                     <form action="{{ url_for('book_service', emp_id=employee.id) }}" method="POST" style="margin: 0;">

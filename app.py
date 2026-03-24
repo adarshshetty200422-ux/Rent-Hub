@@ -333,11 +333,66 @@ def user_employee_details(emp_id):
     return render_template('user_employee_details.html', employee=employee)
 
 
+@app.route('/user_add_deposit', methods=['POST'])
+@login_required('user')
+def user_add_deposit():
+    user_id = session.get('user_id')
+    amount_str = request.form.get('amount')
+    try:
+        amount = float(amount_str)
+        if amount < 2000:
+            flash("Deposit amount must be at least ₹2000.", "error")
+            return redirect(url_for('dashboard_user'))
+    except (ValueError, TypeError):
+        flash("Invalid deposit amount.", "error")
+        return redirect(url_for('dashboard_user'))
+        
+    with get_db_connection() as conn:
+        conn.execute(
+            "UPDATE users SET deposit_balance = COALESCE(deposit_balance, 0) + ? WHERE id = ?",
+            (amount, user_id)
+        )
+        conn.commit()
+    flash(f"Successfully added ₹{amount} to your deposit balance.", "success")
+    return redirect(url_for('dashboard_user'))
+
+@app.route('/user_withdraw_deposit', methods=['POST'])
+@login_required('user')
+def user_withdraw_deposit():
+    user_id = session.get('user_id')
+    amount_str = request.form.get('amount')
+    try:
+        amount = float(amount_str)
+        if amount <= 0:
+            flash("Withdrawal amount must be greater than zero.", "error")
+            return redirect(url_for('dashboard_user'))
+    except (ValueError, TypeError):
+        flash("Invalid withdrawal amount.", "error")
+        return redirect(url_for('dashboard_user'))
+        
+    with get_db_connection() as conn:
+        user = conn.execute("SELECT deposit_balance FROM users WHERE id = ?", (user_id,)).fetchone()
+        current_balance = user['deposit_balance'] or 0.0
+        
+        if amount > current_balance:
+            flash(f"Insufficient deposit balance. You can withdraw up to ₹{current_balance}.", "error")
+            return redirect(url_for('dashboard_user'))
+            
+        conn.execute(
+            "UPDATE users SET deposit_balance = deposit_balance - ? WHERE id = ?",
+            (amount, user_id)
+        )
+        conn.commit()
+    flash(f"Successfully withdrew ₹{amount} from your deposit balance.", "success")
+    return redirect(url_for('dashboard_user'))
+
+
 @app.route('/dashboard_user')
 @login_required('user')
 def dashboard_user():
     user_id = session.get('user_id')
     with get_db_connection() as conn:
+        user_info = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
         try:
             pending_employees = conn.execute(
                 "SELECT * FROM users WHERE role = 'employee' AND account_status = 'pending'"
@@ -353,6 +408,7 @@ def dashboard_user():
             user_messages = []
 
     return render_template('dashboard_user.html',
+                           user_info=user_info,
                            pending_employees=pending_employees,
                            user_messages=user_messages)
 
@@ -686,6 +742,10 @@ def book_service(emp_id):
         user = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
         
         if employee and user:
+            if (employee['deposit_balance'] or 0.0) < 2000.0:
+                flash(f"Professional '{employee['username']}' is currently not accepting requests.", "error")
+                return redirect(request.referrer or url_for('dashboard_user'))
+                
             existing = conn.execute("SELECT * FROM service_requests WHERE user_id = ? AND employee_id = ? AND status = 'Pending'", (user_id, emp_id)).fetchone()
             if existing:
                 flash(f"You already have a pending request for {employee['username']}.", "error")
@@ -694,6 +754,15 @@ def book_service(emp_id):
                     "INSERT INTO service_requests (user_id, employee_id, status) VALUES (?, ?, 'Pending')",
                     (user_id, emp_id)
                 )
+                
+                # Send a notification message to the employee
+                deposit_balance = employee['deposit_balance'] or 0.0
+                msg = f"You received a new service request from {user['username']}. Your current Advance Deposit balance is ₹{deposit_balance}."
+                conn.execute(
+                    "INSERT INTO employee_messages (gmail, message) VALUES (?, ?)",
+                    (employee['gmail'], msg)
+                )
+                
                 conn.commit()
                 flash(f"Booking request sent successfully to {employee['username']}!", 'success')
         else:
@@ -715,8 +784,8 @@ def employee_handle_request(req_id, action):
     with get_db_connection() as conn:
         if action == 'accept':
             emp_data = conn.execute("SELECT deposit_balance FROM users WHERE id = ?", (employee_id,)).fetchone()
-            if not emp_data or (emp_data['deposit_balance'] or 0.0) < 500.0:
-                flash("You must maintain a minimum deposit advance of ₹500 to accept new requests. Please add funds.", "error")
+            if not emp_data or (emp_data['deposit_balance'] or 0.0) < 2000.0:
+                flash("You must maintain a minimum deposit advance of ₹2000 to accept new requests. Please add funds.", "error")
                 return redirect(url_for('dashboard_employee'))
 
         req = conn.execute(
@@ -752,8 +821,8 @@ def add_deposit():
     amount_str = request.form.get('amount')
     try:
         amount = float(amount_str)
-        if amount <= 0:
-            flash("Deposit amount must be greater than zero.", "error")
+        if amount < 2000:
+            flash("Deposit amount must be at least ₹2000.", "error")
             return redirect(url_for('dashboard_employee'))
     except (ValueError, TypeError):
         flash("Invalid deposit amount.", "error")
@@ -766,6 +835,36 @@ def add_deposit():
         )
         conn.commit()
     flash(f"Successfully added ₹{amount} to your deposit balance.", "success")
+    return redirect(url_for('dashboard_employee'))
+
+@app.route('/withdraw_deposit', methods=['POST'])
+@login_required('employee')
+def withdraw_deposit():
+    employee_id = session.get('user_id')
+    amount_str = request.form.get('amount')
+    try:
+        amount = float(amount_str)
+        if amount <= 0:
+            flash("Withdrawal amount must be greater than zero.", "error")
+            return redirect(url_for('dashboard_employee'))
+    except (ValueError, TypeError):
+        flash("Invalid withdrawal amount.", "error")
+        return redirect(url_for('dashboard_employee'))
+        
+    with get_db_connection() as conn:
+        employee = conn.execute("SELECT deposit_balance FROM users WHERE id = ?", (employee_id,)).fetchone()
+        current_balance = employee['deposit_balance'] or 0.0
+        
+        if amount > current_balance:
+            flash(f"Insufficient deposit balance. You can withdraw up to ₹{current_balance}.", "error")
+            return redirect(url_for('dashboard_employee'))
+            
+        conn.execute(
+            "UPDATE users SET deposit_balance = deposit_balance - ? WHERE id = ?",
+            (amount, employee_id)
+        )
+        conn.commit()
+    flash(f"Successfully withdrew ₹{amount} from your deposit balance.", "success")
     return redirect(url_for('dashboard_employee'))
 
 if __name__ == '__main__':
