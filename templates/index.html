@@ -38,17 +38,38 @@
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="auth_pass" placeholder="Enter your password" required autocomplete="new-password">
+                <div class="input-group">
+                    <input type="password" id="password" name="auth_pass" placeholder="Enter your password" required autocomplete="new-password">
+                    <button type="button" class="toggle-password" onclick="togglePassword()">
+                        <svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary btn-block" style="width: 100%; padding: 12px; font-size: 1rem; border-radius: 8px; border: none; background: #6366f1; color: white; cursor: pointer; transition: background 0.3s; margin-top: 10px;">Sign In</button>
             <div style="margin-top: 20px; text-align: center; color: #64748b; font-size: 0.9rem;">
-                <a href="{{ url_for('user') }}" style="color: #6366f1; text-decoration: none; font-weight: 500;">Register as User</a>
+                <a href="{{ url_for('user') }}?register=true" style="color: #6366f1; text-decoration: none; font-weight: 500;">Register as User</a>
                 &bull;
-                <a href="{{ url_for('employee') }}" style="color: #6366f1; text-decoration: none; font-weight: 500;">Register as Employee</a>
+                <a href="{{ url_for('employee') }}?register=true" style="color: #6366f1; text-decoration: none; font-weight: 500;">Register as Employee</a>
             </div>
         </form>
     </div>
+    <script>
+        function togglePassword() {
+            const input = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+            } else {
+                input.type = 'password';
+                icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+            }
+        }
+    </script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 

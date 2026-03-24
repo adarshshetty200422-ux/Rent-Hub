@@ -74,19 +74,83 @@
                             <span class="info-label">Availability</span>
                             <form action="{{ url_for('update_employee_availability') }}" method="POST" style="margin: 0;">
                                 <select name="availability" onchange="this.form.submit()"
-                                    style="color: {{ 'var(--success)' if employee.availability == 'Available' else 'var(--danger)' }};"
+                                    class="{{ 'text-success' if employee.availability == 'Available' else 'text-danger' }}"
                                     id="availability-select">
                                     <option value="Available" style="color: black;" {% if employee.availability=='Available' %}selected{% endif %}>Available</option>
                                     <option value="Not Available" style="color: black;" {% if employee.availability=='Not Available' %}selected{% endif %}>Not Available</option>
+                                    <option value="Booked" style="color: black;" {% if employee.availability=='Booked' %}selected{% endif %}>Booked</option>
                                 </select>
                             </form>
                         </div>
                     </div>
                 </div>
+                
+                <div class="info-card" style="margin-top: 20px;">
+                    <h3><i class="fa-solid fa-wallet"></i> Advance Deposit</h3>
+                    <div class="info-list">
+                        <div class="info-row">
+                            <span class="info-label">Current Balance</span>
+                            <span class="info-value {{ 'text-success' if (employee.deposit_balance or 0) >= 500 else 'text-danger' }}" style="font-weight: 600;">₹{{ employee.deposit_balance or 0.0 }}</span>
+                        </div>
+                        <div class="info-row" style="border-bottom: none; padding-bottom: 0;">
+                            <span class="info-label" style="display: block; margin-bottom: 10px; font-size: 0.85rem; color: #666;">Add Funds (Min ₹500 required to accept new requests)</span>
+                        </div>
+                        <form action="{{ url_for('add_deposit') }}" method="POST" style="margin: 0; display: flex; gap: 10px;">
+                            <input type="number" name="amount" min="1" step="1" required placeholder="Amount" style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background-color: var(--card-bg); color: var(--text);">
+                            <button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-plus"></i> Add Payment</button>
+                        </form>
+                    </div>
+                </div>
             </div>
 
-            <!-- Right: Messages -->
+            <!-- Right: Requests & Messages -->
             <div>
+                <!-- Service Requests -->
+                {% if service_requests %}
+                <div class="card" style="margin-bottom: 20px;">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span class="icon">📅</span> Service Requests
+                        </div>
+                        <span class="badge badge-pending">{{ service_requests|length }}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Contact</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for req in service_requests %}
+                                    <tr>
+                                        <td>{{ req.user_name }}</td>
+                                        <td>{{ req.user_gmail }}</td>
+                                        <td><span class="status-badge status-pending">{{ req.status }}</span></td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <form action="{{ url_for('employee_handle_request', req_id=req.id, action='accept') }}" method="POST" style="display:inline;">
+                                                    <button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-check"></i> Accept</button>
+                                                </form>
+                                                <form action="{{ url_for('employee_handle_request', req_id=req.id, action='reject') }}" method="POST" style="display:inline;">
+                                                    <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-xmark"></i> Reject</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Messages -->
                 {% if emp_messages %}
                 <div class="card">
                     <div class="card-header">
@@ -143,8 +207,12 @@
                     <span class="value">{{ employee.work_details }}</span>
                 </div>
                 <div class="profile-row">
+                    <span class="label">Deposit Balance</span>
+                    <span class="value">₹{{ employee.deposit_balance or 0.0 }}</span>
+                </div>
+                <div class="profile-row">
                     <span class="label">Availability</span>
-                    <span class="value" style="color: {{ 'var(--success)' if employee.availability == 'Available' else 'var(--danger)' }};">{{ employee.availability or 'Available' }}</span>
+                    <span class="value {{ 'text-success' if employee.availability == 'Available' else 'text-danger' }}">{{ employee.availability or 'Available' }}</span>
                 </div>
             </div>
 
@@ -169,7 +237,15 @@
                 </div>
                 <div class="form-group">
                     <label>New Password <span class="hint">(leave empty to keep current)</span></label>
-                    <input type="password" name="password" placeholder="Enter new password...">
+                    <div class="input-group">
+                        <input type="password" id="edit_password" name="password" placeholder="Enter new password...">
+                        <button type="button" class="toggle-password" onclick="toggleEditPassword()">
+                            <svg id="editEyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Gmail ID</label>
@@ -210,6 +286,18 @@
                 }
             });
         });
+
+        function toggleEditPassword() {
+            const input = document.getElementById('edit_password');
+            const icon = document.getElementById('editEyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+            } else {
+                input.type = 'password';
+                icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+            }
+        }
     </script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>

@@ -14,6 +14,7 @@ def init():
     cursor.execute("DROP TABLE IF EXISTS employee_messages")
     cursor.execute("DROP TABLE IF EXISTS user_messages")
     cursor.execute("DROP TABLE IF EXISTS requests")
+    cursor.execute("DROP TABLE IF EXISTS service_requests")
 
     # Create tables
     # 1. Users Table
@@ -23,11 +24,12 @@ def init():
         username TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
         role TEXT NOT NULL,
-        phone_number TEXT,
+        gmail TEXT,
         work_details TEXT,
         account_status TEXT DEFAULT 'approved',
         availability TEXT DEFAULT 'Not specified',
-        is_online INTEGER DEFAULT 0
+        is_online INTEGER DEFAULT 0,
+        deposit_balance REAL DEFAULT 0.0
     )
     """)
 
@@ -35,7 +37,7 @@ def init():
     cursor.execute("""
     CREATE TABLE employee_messages(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        phone_number TEXT NOT NULL,
+        gmail TEXT NOT NULL,
         message TEXT NOT NULL
     )
     """)
@@ -58,6 +60,18 @@ def init():
         item_name TEXT NOT NULL,
         status TEXT DEFAULT 'Pending',
         FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+    """)
+
+    # 5. Service Requests Table
+    cursor.execute("""
+    CREATE TABLE service_requests(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        employee_id INTEGER NOT NULL,
+        status TEXT DEFAULT 'Pending',
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (employee_id) REFERENCES users(id)
     )
     """)
 

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="View employee details and book service.">
+    <title>Professional Details — Rent Hub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+</head>
+
+<body class="dashboard-body">
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="nav-brand-icon">🏠</div>
+            <span>Rent Hub</span>
+        </div>
+        <div class="nav-actions">
+            <a href="javascript:history.back()" class="btn-nav-profile">
+                <i class="fa-solid fa-arrow-left"></i> Back
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn-nav-logout" id="logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+        </div>
+    </nav>
+
+    <div class="details-page">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul class="flash-messages">
+            {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+        <div class="details-header">
+            <h1><i class="fa-solid fa-user"></i> {{ employee.username }}'s Profile</h1>
+            <p style="color: var(--text-muted); margin-top: 8px;">View details and book professional services.</p>
+        </div>
+
+        <div class="section" style="max-width: 800px; margin: 0 auto;">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="icon"><i class="fa-solid fa-briefcase"></i></span> Profile Information
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="profile-details" style="margin-bottom: 30px;">
+                        <div class="profile-row" style="display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border);">
+                            <span class="label" style="font-weight: 600; color: var(--text-primary);"><i class="fa-solid fa-user-circle"></i> Name</span>
+                            <span class="value" style="color: var(--text-secondary);">{{ employee.username }}</span>
+                        </div>
+                        <div class="profile-row" style="display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border);">
+                            <span class="label" style="font-weight: 600; color: var(--text-primary);"><i class="fa-solid fa-envelope"></i> Contact</span>
+                            <span class="value" style="color: var(--text-secondary);">{{ employee.gmail }}</span>
+                        </div>
+                        <div class="profile-row" style="display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border);">
+                            <span class="label" style="font-weight: 600; color: var(--text-primary);"><i class="fa-solid fa-tools"></i> Services Offered</span>
+                            <span class="value" style="color: var(--text-secondary);">{{ employee.work_details }}</span>
+                        </div>
+                        <div class="profile-row" style="display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border);">
+                            <span class="label" style="font-weight: 600; color: var(--text-primary);"><i class="fa-solid fa-clock"></i> Availability</span>
+                            <span class="value {{ 'text-success' if employee.availability == 'Available' else 'text-danger' }}" style="font-weight: 600;">
+                                {{ employee.availability or 'Not specified' }}
+                            </span>
+                        </div>
+                        <div class="profile-row" style="display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border);">
+                            <span class="label" style="font-weight: 600; color: var(--text-primary);"><i class="fa-solid fa-circle-dot"></i> Status</span>
+                            {% if employee.is_online %}
+                            <span class="value" style="color: var(--success); font-weight: 600;">Online</span>
+                            {% else %}
+                            <span class="value" style="color: var(--text-muted); font-weight: 600;">Offline</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if employee.availability == 'Booked' %}
+                    <button type="button" class="btn btn-secondary btn-block" style="width: 100%; font-size: 16px; padding: 14px; cursor: not-allowed; opacity: 0.7;" disabled>
+                        <i class="fa-solid fa-ban"></i> Currently Booked
+                    </button>
+                    {% else %}
+                    <form action="{{ url_for('book_service', emp_id=employee.id) }}" method="POST" style="margin: 0;">
+                        <button type="submit" class="btn btn-primary btn-block" style="width: 100%; font-size: 16px; padding: 14px;">
+                            <i class="fa-solid fa-calendar-check"></i> Book {{ employee.username }}'s Services
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

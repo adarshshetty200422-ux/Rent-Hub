@@ -68,7 +68,7 @@
         </form>
 
         <div class="auth-toggle">
-            <button type="button" onclick="toggleForm()" id="toggleBtn">Don't have an account? Register here</button>
+            <button type="button" onclick="handleToggleClick()" id="toggleBtn">Don't have an account? Register here</button>
         </div>
 
 
@@ -80,6 +80,14 @@
 
     <script>
         let isLogin = true;
+
+        function handleToggleClick() {
+            if (isLogin) {
+                toggleForm();
+            } else {
+                window.location.href = "{{ url_for('index') }}";
+            }
+        }
 
         function toggleForm() {
             isLogin = !isLogin;
@@ -132,6 +140,13 @@
                 icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
             }
         }
+
+        window.addEventListener('DOMContentLoaded', (event) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('register') === 'true') {
+                toggleForm();
+            }
+        });
     </script>
 </body>
 

@@ -7,13 +7,22 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from flask_mail import Mail, Message
 
 app = Flask(__name__)
 app.secret_key = 'super_secret_premium_key'
 
-# Email Configuration
-MAIL_SENDER = os.environ.get('MAIL_SENDER', 'your_email@gmail.com')
-MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', 'your_app_password')
+# Email Configuration using Flask-Mail
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_SENDER', 'your_email@gmail.com')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', 'your_app_password')
+app.config['MAIL_DEFAULT_SENDER'] = app.config['MAIL_USERNAME']
+mail = Mail(app)
+
+MAIL_SENDER = app.config['MAIL_USERNAME']
+MAIL_PASSWORD = app.config['MAIL_PASSWORD']
 
 def send_email_notification(to_email, subject, body):
     try:
@@ -31,6 +40,29 @@ def send_email_notification(to_email, subject, body):
         return True
     except Exception as e:
         print(f"Email could not be sent: {e}")
+        return False
+def send_employee_credentials(email, username, password):
+    try:
+        subject = "Rent Hub Employee Account Approved"
+        login_link = url_for('employee', _external=True)
+        
+        body = f"""Hello,
+Your employee application has been approved by Rent Hub.
+
+Username: {username}
+Password: {password}
+
+You can now log in to the employee portal and start using the platform.
+Login Link: {login_link}
+
+Thank you,
+Rent Hub Team"""
+        
+        msg = Message(subject, recipients=[email], body=body)
+        mail.send(msg)
+        return True
+    except Exception as e:
+        print(f"Employee credentials email could not be sent: {e}")
         return False
 
 DB_PATH = os.path.join(os.path.dirname(__file__), 'database.db')
@@ -181,7 +213,7 @@ def register_user():
 
             flash('Registered and logged in successfully!', 'success')
             return redirect(url_for('dashboard_user'))
-    except Exception as e:
+    except Exception:
         flash('An error occurred during registration.', 'error')
         return redirect(url_for('user'))
 
@@ -219,8 +251,8 @@ def register_employee():
             conn.commit()
 
             flash('Registration successful! Please wait for approval.', 'success')
-            return redirect(url_for('employee'))
-    except Exception as e:
+            return redirect(url_for('index'))
+    except Exception:
         flash('An error occurred during registration.', 'error')
         return redirect(url_for('employee'))
 
@@ -288,6 +320,19 @@ def view_service(service_name):
     return render_template('service_providers.html', service_name=service_name, providers=providers)
 
 
+@app.route('/user_employee_details/<int:emp_id>')
+@login_required('user')
+def user_employee_details(emp_id):
+    with get_db_connection() as conn:
+        employee = conn.execute(
+            "SELECT * FROM users WHERE id = ? AND role = 'employee'", (emp_id,)
+        ).fetchone()
+        if not employee:
+            flash("Professional not found.", "error")
+            return redirect(url_for('dashboard_user'))
+    return render_template('user_employee_details.html', employee=employee)
+
+
 @app.route('/dashboard_user')
 @login_required('user')
 def dashboard_user():
@@ -320,18 +365,31 @@ def dashboard_employee():
         employee = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
 
         emp_messages = []
+        service_requests = []
         if employee:
             try:
                 emp_messages = conn.execute(
                     "SELECT * FROM employee_messages WHERE gmail = ? ORDER BY id DESC",
                     (employee['gmail'],)
                 ).fetchall()
+                
+                service_requests = conn.execute(
+                    """
+                    SELECT sr.id, sr.status, u.username as user_name, u.gmail as user_gmail 
+                    FROM service_requests sr
+                    JOIN users u ON sr.user_id = u.id
+                    WHERE sr.employee_id = ? AND sr.status = 'Pending'
+                    ORDER BY sr.id DESC
+                    """, (user_id,)
+                ).fetchall()
             except sqlite3.OperationalError:
                 emp_messages = []
+                service_requests = []
 
     return render_template('dashboard_employee.html',
                            employee=employee,
-                           emp_messages=emp_messages)
+                           emp_messages=emp_messages,
+                           service_requests=service_requests)
 
 
 @app.route('/update_employee', methods=['POST'])
@@ -456,7 +514,7 @@ def accept_employee(emp_id):
             conn.commit()
             
             # Send actual email
-            send_email_notification(emp['gmail'], "Rent Hub: Application Approved", message)
+            send_employee_credentials(emp['gmail'], emp['username'], password)
             
             flash(f"Employee {emp['username']} accepted. Login details sent to their email.", 'success')
     return redirect(url_for('dashboard_user'))
@@ -481,7 +539,7 @@ def admin_accept_employee(emp_id):
             conn.commit()
             
             # Send actual email
-            send_email_notification(emp['gmail'], "Rent Hub: Application Approved", message)
+            send_employee_credentials(emp['gmail'], emp['username'], password)
             
             flash(f"Employee {emp['username']} accepted. Login details sent to their email.", 'success')
     return redirect(url_for('dashboard_admin'))
@@ -618,6 +676,97 @@ def admin_update_request(req_id, action):
 
     return redirect(url_for('dashboard_admin'))
 
+
+@app.route('/book_service/<int:emp_id>', methods=['POST'])
+@login_required('user')
+def book_service(emp_id):
+    user_id = session.get('user_id')
+    with get_db_connection() as conn:
+        employee = conn.execute("SELECT * FROM users WHERE id = ? AND role = 'employee'", (emp_id,)).fetchone()
+        user = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+        
+        if employee and user:
+            existing = conn.execute("SELECT * FROM service_requests WHERE user_id = ? AND employee_id = ? AND status = 'Pending'", (user_id, emp_id)).fetchone()
+            if existing:
+                flash(f"You already have a pending request for {employee['username']}.", "error")
+            else:
+                conn.execute(
+                    "INSERT INTO service_requests (user_id, employee_id, status) VALUES (?, ?, 'Pending')",
+                    (user_id, emp_id)
+                )
+                conn.commit()
+                flash(f"Booking request sent successfully to {employee['username']}!", 'success')
+        else:
+            flash("Failed to send booking request. Employee not found.", "error")
+            
+    return redirect(request.referrer or url_for('dashboard_user'))
+
+
+@app.route('/employee_handle_request/<int:req_id>/<action>', methods=['POST'])
+@login_required('employee')
+def employee_handle_request(req_id, action):
+    employee_id = session.get('user_id')
+    if action not in ('accept', 'reject'):
+        flash("Invalid action.", "error")
+        return redirect(url_for('dashboard_employee'))
+
+    new_status = 'Accepted' if action == 'accept' else 'Rejected'
+
+    with get_db_connection() as conn:
+        if action == 'accept':
+            emp_data = conn.execute("SELECT deposit_balance FROM users WHERE id = ?", (employee_id,)).fetchone()
+            if not emp_data or (emp_data['deposit_balance'] or 0.0) < 500.0:
+                flash("You must maintain a minimum deposit advance of ₹500 to accept new requests. Please add funds.", "error")
+                return redirect(url_for('dashboard_employee'))
+
+        req = conn.execute(
+            "SELECT * FROM service_requests WHERE id = ? AND employee_id = ?", 
+            (req_id, employee_id)
+        ).fetchone()
+        
+        if req:
+            conn.execute("UPDATE service_requests SET status = ? WHERE id = ?", (new_status, req_id))
+            
+            if new_status == 'Accepted':
+                conn.execute("UPDATE users SET availability = 'Booked' WHERE id = ?", (employee_id,))
+            
+            # Send a message to the user
+            employee = conn.execute("SELECT username FROM users WHERE id = ?", (employee_id,)).fetchone()
+            msg = f"Your service booking request with professional '{employee['username']}' has been {new_status.lower()}."
+            conn.execute(
+                "INSERT INTO user_messages (user_id, message) VALUES (?, ?)",
+                (req['user_id'], msg)
+            )
+            
+            conn.commit()
+            flash(f"Service request has been {new_status.lower()}.", 'success')
+        else:
+            flash("Service request not found or not authorized.", "error")
+
+    return redirect(url_for('dashboard_employee'))
+
+@app.route('/add_deposit', methods=['POST'])
+@login_required('employee')
+def add_deposit():
+    employee_id = session.get('user_id')
+    amount_str = request.form.get('amount')
+    try:
+        amount = float(amount_str)
+        if amount <= 0:
+            flash("Deposit amount must be greater than zero.", "error")
+            return redirect(url_for('dashboard_employee'))
+    except (ValueError, TypeError):
+        flash("Invalid deposit amount.", "error")
+        return redirect(url_for('dashboard_employee'))
+        
+    with get_db_connection() as conn:
+        conn.execute(
+            "UPDATE users SET deposit_balance = COALESCE(deposit_balance, 0) + ? WHERE id = ?",
+            (amount, employee_id)
+        )
+        conn.commit()
+    flash(f"Successfully added ₹{amount} to your deposit balance.", "success")
+    return redirect(url_for('dashboard_employee'))
 
 if __name__ == '__main__':
     app.run(debug=True)

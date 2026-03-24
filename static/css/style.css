@@ -53,7 +53,7 @@ html {
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 15px;
+    font-size: 18px;
     line-height: 1.6;
     background: var(--bg-dark);
     background-image:
@@ -172,11 +172,11 @@ body.auth-body::after {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    font-size: 27px;
 }
 
 .auth-container .logo-text {
-    font-size: 26px;
+    font-size: 32px;
     font-weight: 800;
     background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
     -webkit-background-clip: text;
@@ -186,7 +186,7 @@ body.auth-body::after {
 }
 
 .auth-container h2 {
-    font-size: 22px;
+    font-size: 27px;
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 6px;
@@ -194,7 +194,7 @@ body.auth-body::after {
 }
 
 .auth-container .subtitle {
-    font-size: 14px;
+    font-size: 17px;
     color: var(--text-muted);
     text-align: center;
     margin-bottom: 32px;
@@ -238,7 +238,7 @@ body.auth-body::after {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    font-size: 27px;
     flex-shrink: 0;
 }
 
@@ -261,13 +261,13 @@ body.auth-body::after {
 }
 
 .role-card .role-info h3 {
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 600;
     margin-bottom: 2px;
 }
 
 .role-card .role-info p {
-    font-size: 13px;
+    font-size: 16px;
     color: var(--text-muted);
 }
 
@@ -296,7 +296,7 @@ body.auth-body::after {
 .flash-messages li {
     padding: 12px 16px;
     border-radius: var(--radius-md);
-    font-size: 14px;
+    font-size: 17px;
     font-weight: 500;
     display: flex;
     align-items: center;
@@ -331,7 +331,7 @@ body.auth-body::after {
 }
 
 .form-group label {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--text-secondary);
     text-transform: uppercase;
@@ -339,7 +339,7 @@ body.auth-body::after {
 }
 
 .form-group .hint {
-    font-size: 12px;
+    font-size: 15px;
     color: var(--text-muted);
     font-weight: 400;
     text-transform: none;
@@ -357,7 +357,7 @@ select {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    font-size: 15px;
+    font-size: 18px;
     font-family: inherit;
     color: var(--text-primary);
     outline: none;
@@ -418,7 +418,7 @@ textarea {
     justify-content: center;
     gap: 8px;
     padding: 13px 24px;
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 600;
     font-family: inherit;
     border: none;
@@ -497,13 +497,13 @@ textarea {
 
 .btn-sm {
     padding: 8px 16px;
-    font-size: 13px;
+    font-size: 16px;
     border-radius: var(--radius-sm);
 }
 
 .btn-lg {
     padding: 16px 32px;
-    font-size: 16px;
+    font-size: 20px;
 }
 
 .btn-block {
@@ -539,7 +539,7 @@ textarea {
     background: none;
     border: none;
     color: var(--primary-light);
-    font-size: 14px;
+    font-size: 17px;
     font-weight: 500;
     cursor: pointer;
     font-family: inherit;
@@ -556,7 +556,7 @@ textarea {
     align-items: center;
     gap: 6px;
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: 17px;
     margin-top: 20px;
     transition: var(--transition);
     text-align: center;
@@ -572,7 +572,7 @@ textarea {
     gap: 16px;
     margin: 24px 0;
     color: var(--text-muted);
-    font-size: 13px;
+    font-size: 16px;
 }
 
 .divider::before,
@@ -612,7 +612,7 @@ body.dashboard-body {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 20px;
+    font-size: 25px;
     font-weight: 800;
     letter-spacing: -0.5px;
 }
@@ -625,7 +625,7 @@ body.dashboard-body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 22px;
 }
 
 .nav-brand span {
@@ -666,20 +666,20 @@ body.dashboard-body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 17px;
     font-weight: 700;
     color: white;
     text-transform: uppercase;
 }
 
 .nav-username {
-    font-size: 14px;
+    font-size: 17px;
     font-weight: 600;
     color: var(--text-primary);
 }
 
 .nav-role {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -698,7 +698,7 @@ body.dashboard-body {
     background: rgba(255, 107, 107, 0.1);
     border: 1px solid rgba(255, 107, 107, 0.2);
     color: var(--danger);
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
@@ -722,7 +722,7 @@ body.dashboard-body {
     background: var(--surface);
     border: 1px solid var(--border);
     color: var(--text-secondary);
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
@@ -752,7 +752,7 @@ body.dashboard-body {
 }
 
 .dashboard-welcome h1 {
-    font-size: 28px;
+    font-size: 35px;
     font-weight: 800;
     margin-bottom: 6px;
     letter-spacing: -0.5px;
@@ -767,7 +767,7 @@ body.dashboard-body {
 
 .dashboard-welcome p {
     color: var(--text-muted);
-    font-size: 15px;
+    font-size: 18px;
 }
 
 /* ===========================
@@ -804,7 +804,7 @@ body.dashboard-body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 30px;
     flex-shrink: 0;
 }
 
@@ -839,7 +839,7 @@ body.dashboard-body {
 }
 
 .stat-label {
-    font-size: 13px;
+    font-size: 16px;
     color: var(--text-muted);
     font-weight: 500;
     margin-bottom: 4px;
@@ -848,7 +848,7 @@ body.dashboard-body {
 }
 
 .stat-value {
-    font-size: 28px;
+    font-size: 35px;
     font-weight: 800;
     color: var(--text-primary);
 }
@@ -880,13 +880,13 @@ body.dashboard-body {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 700;
     color: var(--text-primary);
 }
 
 .card-title .icon {
-    font-size: 18px;
+    font-size: 22px;
 }
 
 .card-body {
@@ -908,7 +908,7 @@ body.dashboard-body {
 .data-table thead th {
     padding: 14px 20px;
     text-align: left;
-    font-size: 12px;
+    font-size: 15px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -932,7 +932,7 @@ body.dashboard-body {
 
 .data-table tbody td {
     padding: 14px 20px;
-    font-size: 14px;
+    font-size: 17px;
     color: var(--text-secondary);
     vertical-align: middle;
 }
@@ -957,7 +957,7 @@ body.dashboard-body {
     gap: 6px;
     padding: 4px 12px;
     border-radius: var(--radius-full);
-    font-size: 12px;
+    font-size: 15px;
     font-weight: 600;
     white-space: nowrap;
 }
@@ -1023,13 +1023,13 @@ body.dashboard-body {
 }
 
 .empty-state .empty-icon {
-    font-size: 40px;
+    font-size: 50px;
     margin-bottom: 12px;
     opacity: 0.3;
 }
 
 .empty-state p {
-    font-size: 14px;
+    font-size: 17px;
 }
 
 /* ===========================
@@ -1054,7 +1054,7 @@ body.dashboard-body {
 }
 
 .accordion-arrow {
-    font-size: 14px;
+    font-size: 17px;
     color: var(--text-muted);
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
@@ -1147,7 +1147,7 @@ body.dashboard-body {
     justify-content: center;
     cursor: pointer;
     color: var(--text-muted);
-    font-size: 16px;
+    font-size: 20px;
     transition: var(--transition);
 }
 
@@ -1158,7 +1158,7 @@ body.dashboard-body {
 }
 
 .modal h3 {
-    font-size: 20px;
+    font-size: 25px;
     font-weight: 700;
     margin-bottom: 24px;
     color: var(--text-primary);
@@ -1192,13 +1192,13 @@ body.dashboard-body {
 }
 
 .profile-row .label {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 500;
     color: var(--text-muted);
 }
 
 .profile-row .value {
-    font-size: 14px;
+    font-size: 17px;
     font-weight: 600;
     color: var(--text-primary);
 }
@@ -1217,7 +1217,7 @@ body.dashboard-body {
     background: var(--surface);
     border-radius: var(--radius-md);
     border-left: 3px solid var(--warning);
-    font-size: 14px;
+    font-size: 17px;
     color: var(--text-secondary);
     line-height: 1.6;
     transition: var(--transition);
@@ -1269,13 +1269,13 @@ body.dashboard-body {
 }
 
 .service-details h4 {
-    font-size: 17px;
+    font-size: 21px;
     font-weight: 700;
     margin-bottom: 8px;
 }
 
 .service-details p {
-    font-size: 13px;
+    font-size: 16px;
     color: var(--text-muted);
     line-height: 1.6;
     margin-bottom: 14px;
@@ -1291,7 +1291,7 @@ body.dashboard-body {
 .tag {
     padding: 4px 10px;
     border-radius: var(--radius-full);
-    font-size: 12px;
+    font-size: 15px;
     font-weight: 600;
     background: var(--surface);
     color: var(--text-secondary);
@@ -1311,7 +1311,7 @@ body.dashboard-body {
     background: transparent;
     border: 1px solid var(--primary);
     color: var(--primary-light);
-    font-size: 14px;
+    font-size: 17px;
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
@@ -1336,7 +1336,7 @@ body.dashboard-body {
 }
 
 .info-card h3 {
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 700;
     margin-bottom: 18px;
     padding-bottom: 12px;
@@ -1360,13 +1360,13 @@ body.dashboard-body {
 }
 
 .info-row .info-label {
-    font-size: 13px;
+    font-size: 16px;
     color: var(--text-muted);
     font-weight: 500;
 }
 
 .info-row .info-value {
-    font-size: 14px;
+    font-size: 17px;
     font-weight: 600;
     color: var(--text-primary);
 }
@@ -1376,7 +1376,7 @@ body.dashboard-body {
     border: none;
     outline: none;
     font-family: inherit;
-    font-size: 14px;
+    font-size: 17px;
     font-weight: 600;
     cursor: pointer;
     text-align: right;
@@ -1404,7 +1404,7 @@ body.dashboard-body {
 }
 
 .details-header h1 {
-    font-size: 24px;
+    font-size: 30px;
     font-weight: 800;
 }
 
@@ -1424,7 +1424,7 @@ body.dashboard-body {
 }
 
 .check-messages-section p {
-    font-size: 14px;
+    font-size: 17px;
     color: var(--text-muted);
     margin-bottom: 14px;
 }
@@ -1471,13 +1471,13 @@ body.dashboard-body {
 }
 
 .pending-card h4 {
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 700;
     margin-bottom: 10px;
 }
 
 .pending-card .detail {
-    font-size: 13px;
+    font-size: 16px;
     color: var(--text-muted);
     margin-bottom: 6px;
 }
@@ -1547,7 +1547,7 @@ body.dashboard-body {
     }
 
     .dashboard-welcome h1 {
-        font-size: 22px;
+        font-size: 27px;
     }
 
     .check-messages-form {
@@ -1587,7 +1587,7 @@ body.dashboard-body {
 }
 
 .details-header h1 {
-    font-size: 28px;
+    font-size: 35px;
     font-weight: 800;
     display: flex;
     align-items: center;
@@ -1613,3 +1613,7 @@ body.dashboard-body {
     display: flex;
     flex-direction: column;
 }
+
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
+.text-muted { color: var(--text-muted); }
