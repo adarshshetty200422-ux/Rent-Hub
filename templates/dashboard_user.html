@@ -19,7 +19,10 @@
             <span>Rent Hub</span>
         </div>
         <div class="nav-actions">
-            <div class="nav-user-info">
+            <a href="#" onclick="toggleDeposit(); return false;" class="btn-nav-logout" style="background: rgba(0, 206, 201, 0.15); color: var(--accent); border-color: rgba(0, 206, 201, 0.2); margin-right: 15px;">
+                <i class="fa-solid fa-wallet"></i> Deposit
+            </a>
+            <div class="nav-user-info" onclick="toggleProfile()" style="cursor: pointer;" id="profile-btn">
                 <div class="nav-avatar">{{ session.get('username', 'U')[0] }}</div>
                 <span class="nav-username">{{ session.get('username') }}</span>
                 <span class="nav-role">USER</span>
@@ -68,45 +71,7 @@
         </div>
         {% endif %}
 
-        <!-- Wallet / Deposit Section -->
-        <div class="section">
-            <div class="card" style="max-width: 500px;">
-                <div class="card-header">
-                    <div class="card-title">
-                        <span class="icon"><i class="fa-solid fa-wallet"></i></span> Advance Deposit Wallet
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="info-list">
-                        <div class="info-row" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
-                            <span class="info-label" style="font-weight: 600;">Current Balance</span>
-                            <span class="info-value {{ 'text-success' if (user_info.deposit_balance or 0) >= 2000 else 'text-danger' }}" style="font-weight: 600; font-size: 1.2rem;">₹{{ user_info.deposit_balance or 0.0 }}</span>
-                        </div>
-                        <div style="border-bottom: 2px solid #eee; margin-bottom: 15px;"></div>
-                        
-                        <div style="display: flex; flex-wrap: wrap; gap: 30px;">
-                            <!-- Deposit Section -->
-                            <div style="flex: 1; min-width: 250px;">
-                                <span class="info-label" style="display: block; margin-bottom: 10px; font-size: 0.85rem; color: #666;">Add Funds (Min ₹2000)</span>
-                                <form action="{{ url_for('user_add_deposit') }}" method="POST" style="margin: 0; display: flex; gap: 10px;">
-                                    <input type="number" name="amount" min="2000" step="1" required placeholder="Amount to deposit" class="form-control" style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background-color: var(--card-bg); color: var(--text);">
-                                    <button type="submit" class="btn btn-success"><i class="fa-solid fa-plus"></i> Deposit</button>
-                                </form>
-                            </div>
-                            
-                            <!-- Withdraw Section -->
-                            <div style="flex: 1; min-width: 250px;">
-                                <span class="info-label" style="display: block; margin-bottom: 10px; font-size: 0.85rem; color: #666;">Withdraw Funds</span>
-                                <form action="{{ url_for('user_withdraw_deposit') }}" method="POST" style="margin: 0; display: flex; gap: 10px;">
-                                    <input type="number" name="amount" min="1" step="1" max="{{ user_info.deposit_balance or 0 }}" required placeholder="Amount to withdraw" class="form-control" style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background-color: var(--card-bg); color: var(--text);">
-                                    <button type="submit" class="btn btn-danger" {% if (user_info.deposit_balance or 0) == 0 %}disabled{% endif %}><i class="fa-solid fa-minus"></i> Withdraw</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- The user deposit section has been moved to a modal -->
 
         <!-- Pending Employee Approvals -->
         {% if pending_employees %}
@@ -195,6 +160,155 @@
             </div>
         </div>
     </div>
+
+    <!-- Profile Modal -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal">
+            <button class="modal-close" onclick="toggleProfile()" id="close-profile-modal">&times;</button>
+            <h3>Personal Details</h3>
+
+            {% if user_info %}
+            <div class="profile-details">
+                <div class="profile-row">
+                    <span class="label">Username</span>
+                    <span class="value">{{ user_info.username }}</span>
+                </div>
+                <div class="profile-row">
+                    <span class="label">Role</span>
+                    <span class="value" style="color: var(--primary-light);">USER</span>
+                </div>
+                <div class="profile-row">
+                    <span class="label">Gmail ID</span>
+                    <span class="value">{{ user_info.gmail or 'Not added' }}</span>
+                </div>
+                <div class="profile-row">
+                    <span class="label">Deposit Balance</span>
+                    <span class="value">₹{{ user_info.deposit_balance or 0.0 }}</span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-block" onclick="toggleProfile(); toggleEditProfile();" id="edit-profile-btn">
+                <i class="fa-solid fa-pen-to-square"></i> Edit Profile
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal-overlay" id="editProfileModal">
+        <div class="modal">
+            <button class="modal-close" onclick="toggleEditProfile()" id="close-edit-modal">&times;</button>
+            <h3>Update Profile</h3>
+
+            {% if user_info %}
+            <form action="{{ url_for('update_user') }}" method="POST" class="modal-form">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" value="{{ user_info.username }}" required>
+                </div>
+                <div class="form-group">
+                    <label>New Password <span class="hint">(leave empty to keep current)</span></label>
+                    <div class="input-group">
+                        <input type="password" id="edit_password" name="password" placeholder="Enter new password...">
+                        <button type="button" class="toggle-password" onclick="toggleEditPassword()">
+                            <svg id="editEyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Gmail ID</label>
+                    <input type="email" name="gmail" value="{{ user_info.gmail or '' }}" placeholder="Enter Gmail ID">
+                </div>
+                <button type="submit" class="btn btn-success btn-block" id="save-profile-btn">
+                    <i class="fa-solid fa-check"></i> Save Changes
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Deposit Modal -->
+    <div class="modal-overlay" id="depositModal">
+        <div class="modal" style="max-width: 500px;">
+            <button class="modal-close" onclick="toggleDeposit()" id="close-deposit-modal">&times;</button>
+            <h3><i class="fa-solid fa-wallet"></i> Advance Deposit</h3>
+            
+            <div class="info-list" style="margin-top: 15px;">
+                <div class="info-row" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
+                    <span class="info-label" style="font-weight: 600;">Current Balance</span>
+                    <span class="info-value {{ 'text-success' if (user_info.deposit_balance or 0) >= 2000 else 'text-danger' }}" style="font-weight: 600; font-size: 1.2rem;">₹{{ user_info.deposit_balance or 0.0 }}</span>
+                </div>
+                {% if pending_withdrawals > 0 %}
+                <div class="info-row" style="display: flex; justify-content: space-between; align-items: center; padding: 0 0 15px 0;">
+                    <span class="info-label" style="font-size: 0.9rem; color: var(--text-muted);">Pending Withdrawal</span>
+                    <span class="info-value text-danger" style="font-size: 0.95rem; font-weight: 500;">₹{{ pending_withdrawals }} (Awaiting Admin Approval)</span>
+                </div>
+                {% endif %}
+                <div style="border-bottom: 2px solid #eee; margin-bottom: 15px;"></div>
+                
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <!-- Deposit Section -->
+                    <div>
+                        <span class="info-label" style="display: block; margin-bottom: 10px; font-size: 0.85rem; color: #666;">Add Funds</span>
+                        <form action="{{ url_for('user_add_deposit') }}" method="POST" style="margin: 0; display: flex; gap: 10px;">
+                            <input type="number" name="amount" min="1" step="0.01" required placeholder="Amount to deposit" class="form-control" style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background-color: var(--card-bg); color: var(--text);">
+                            <button type="submit" class="btn btn-success"><i class="fa-solid fa-plus"></i> Deposit</button>
+                        </form>
+                    </div>
+                    
+                    <!-- Withdraw Section -->
+                    <div>
+                        <span class="info-label" style="display: block; margin-bottom: 10px; font-size: 0.85rem; color: #666;">Withdraw Funds</span>
+                        <form action="{{ url_for('user_withdraw_deposit') }}" method="POST" style="margin: 0; display: flex; gap: 10px;">
+                            <input type="number" name="amount" min="1" step="1" max="{{ user_info.deposit_balance or 0 }}" required placeholder="Amount to withdraw" class="form-control" style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background-color: var(--card-bg); color: var(--text);">
+                            <button type="submit" class="btn btn-danger" {% if (user_info.deposit_balance or 0) == 0 %}disabled{% endif %}><i class="fa-solid fa-minus"></i> Withdraw</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleProfile() {
+            const modal = document.getElementById('profileModal');
+            modal.classList.toggle('active');
+        }
+
+        function toggleEditProfile() {
+            const modal = document.getElementById('editProfileModal');
+            modal.classList.toggle('active');
+        }
+
+        function toggleDeposit() {
+            const modal = document.getElementById('depositModal');
+            modal.classList.toggle('active');
+        }
+
+        function toggleEditPassword() {
+            const input = document.getElementById('edit_password');
+            const icon = document.getElementById('editEyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+            } else {
+                input.type = 'password';
+                icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+            }
+        }
+
+        // Close modals on backdrop click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 

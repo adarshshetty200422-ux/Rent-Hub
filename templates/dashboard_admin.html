@@ -270,6 +270,69 @@
             </div>
         </div>
 
+        <!-- Pending Withdrawal Requests -->
+        <div class="section">
+            <div class="card accordion-card">
+                <div class="card-header accordion-header" onclick="toggleAccordion('withdraw-content', this)" id="withdraw-toggle">
+                    <div class="card-title">
+                        <span class="icon"><i class="fa-solid fa-money-bill-transfer"></i></span> Withdrawal Requests
+                        {% if withdrawal_requests %}
+                        <span class="badge badge-pending">{{ withdrawal_requests|length }} pending</span>
+                        {% endif %}
+                    </div>
+                    <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+                </div>
+                <div class="accordion-content" id="withdraw-content">
+                    <div class="card-body no-pad">
+                        <div style="overflow-x: auto;">
+                            <table class="data-table" id="withdraw-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Username</th>
+                                        <th>Role / Contact</th>
+                                        <th>Amount</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if withdrawal_requests %}
+                                    {% for req in withdrawal_requests %}
+                                    <tr>
+                                        <td>{{ req.id }}</td>
+                                        <td style="font-weight: 600;">{{ req.username }}</td>
+                                        <td>{{ req.role|capitalize }}<br><small style="color: var(--text-muted);">{{ req.gmail or 'N/A' }}</small></td>
+                                        <td style="color: var(--danger); font-weight: bold;">₹{{ req.amount }}</td>
+                                        <td>
+                                            <div class="table-actions">
+                                                <form action="{{ url_for('admin_handle_withdrawal', req_id=req.id, action='approve') }}" method="POST">
+                                                    <button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-check"></i> Approve</button>
+                                                </form>
+                                                <form action="{{ url_for('admin_handle_withdrawal', req_id=req.id, action='reject') }}" method="POST">
+                                                    <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-xmark"></i> Reject</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5">
+                                            <div class="empty-state">
+                                                <div class="empty-icon">💸</div>
+                                                <p>No withdrawal requests right now.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Profile Modal -->
