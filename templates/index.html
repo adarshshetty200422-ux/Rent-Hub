@@ -31,6 +31,7 @@
         {% endwith %}
 
         <form action="{{ url_for('login') }}" method="POST" class="auth-form" autocomplete="off">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="auth_user" placeholder="Enter your username" required autocomplete="off">
@@ -49,11 +50,15 @@
                 </div>
             </div>
 
+
             <button type="submit" class="btn btn-primary btn-block" style="width: 100%; padding: 12px; font-size: 1rem; border-radius: 8px; border: none; background: #6366f1; color: white; cursor: pointer; transition: background 0.3s; margin-top: 10px;">Sign In</button>
             <div style="margin-top: 20px; text-align: center; color: #64748b; font-size: 0.9rem;">
                 <a href="{{ url_for('user') }}?register=true" style="color: #6366f1; text-decoration: none; font-weight: 500;">Register as User</a>
                 &bull;
                 <a href="{{ url_for('employee') }}?register=true" style="color: #6366f1; text-decoration: none; font-weight: 500;">Register as Employee</a>
+            </div>
+            <div style="margin-top: 15px; text-align: center;">
+                <a href="{{ url_for('forgot_password') }}" style="color: #64748b; font-size: 0.9rem; text-decoration: underline;">Forgot Password?</a>
             </div>
         </form>
     </div>

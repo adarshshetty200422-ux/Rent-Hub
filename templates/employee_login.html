@@ -30,7 +30,8 @@
         {% endif %}
         {% endwith %}
 
-        <form id="authForm" method="POST" action="{{ url_for('employee') }}" autocomplete="off" class="auth-form">
+        <form id="authForm" method="POST" action="{{ url_for('employee') }}" autocomplete="off" class="auth-form" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="username">Name</label>
                 <input type="text" id="username" name="emp_user" placeholder="Enter your name" required autocomplete="off">
@@ -41,12 +42,40 @@
                     <label for="gmail">Gmail ID</label>
                     <input type="email" id="gmail" name="gmail" placeholder="Enter Gmail ID">
                 </div>
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label for="profile_pic">Profile Picture (Optional)</label>
+                    <input type="file" id="profile_pic" name="profile_pic" accept="image/*" class="form-control" style="padding: 8px;">
+                </div>
                 <div class="form-group">
                     <label>Work Details</label>
-                    <div class="checkbox-group" id="work_details_container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 5px;">
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Catering"> Catering</label>
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Plumbing"> Plumbing</label>
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Electrician"> Electrician</label>
+                    <div class="checkbox-group" id="work_details_container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 5px;">
+                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600;">
+                            <input type="checkbox" name="work_details" value="Moving / Shifting Service"> Moving / Shifting Service
+                        </label>
+                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600;">
+                            <input type="checkbox" name="work_details" value="Cleaning Service"> Cleaning Service
+                        </label>
+                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600;">
+                            <input type="checkbox" name="work_details" value="Plumbing"> Plumber
+                        </label>
+                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600;">
+                            <input type="checkbox" name="work_details" value="Electrician"> Electrician
+                        </label>
+                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600;">
+                            <input type="checkbox" name="work_details" value="Catering"> Catering Services
+                        </label>
+                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600;">
+                            <input type="checkbox" name="work_details" value="Furniture Rental Service"> Furniture Rental Service
+                        </label>
+                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600;">
+                            <input type="checkbox" id="master_appliance_checkbox" onchange="document.getElementById('appliance_sub_options').style.display = this.checked ? 'grid' : 'none'; if(!this.checked) { document.querySelectorAll('#appliance_sub_options input').forEach(cb => cb.checked = false); }"> Appliance Repair
+                        </label>
+                        <div id="appliance_sub_options" style="display: none; grid-template-columns: 1fr 1fr; gap: 10px; margin-left: 15px; border-left: 2px solid var(--border); padding-left: 15px;">
+                            <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Appliance Service: AC Repair"> AC Repair</label>
+                            <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Appliance Service: Washing Machine Repair"> Washing Machine Repair</label>
+                            <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Appliance Service: Refrigerator Repair"> Refrigerator Repair</label>
+                            <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Appliance Service: TV Repair"> TV Repair</label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -62,6 +91,9 @@
                         </svg>
                     </button>
                 </div>
+            </div>
+            <div id="forgotPasswordContainer" style="text-align: right; margin-bottom: 15px; margin-top: -10px;">
+                <a href="{{ url_for('forgot_password') }}" style="color: var(--primary); font-size: 0.85em; text-decoration: none;">Forgot Password?</a>
             </div>
 
             <button type="submit" id="submitBtn" class="btn btn-primary btn-block">Sign In</button>
@@ -111,6 +143,8 @@
                 gmailInput.removeAttribute("required");
                 passwordField.style.display = "block";
                 passwordInput.setAttribute("required", "required");
+                const forgotContainer = document.getElementById("forgotPasswordContainer");
+                if(forgotContainer) forgotContainer.style.display = "block";
             } else {
                 formTitle.innerText = "Employee Registration";
                 formSubtitle.innerText = "Register to offer your services";
@@ -121,12 +155,20 @@
                 gmailInput.setAttribute("required", "required");
                 passwordField.style.display = "none";
                 passwordInput.removeAttribute("required");
+                const forgotContainer = document.getElementById("forgotPasswordContainer");
+                if(forgotContainer) forgotContainer.style.display = "none";
             }
 
             document.getElementById("username").value = "";
             document.getElementById("password").value = "";
             gmailInput.value = "";
             document.querySelectorAll('input[name="work_details"]').forEach(cb => cb.checked = false);
+            
+            const masterCb = document.getElementById("master_appliance_checkbox");
+            if (masterCb) {
+                masterCb.checked = false;
+                document.getElementById('appliance_sub_options').style.display = 'none';
+            }
         }
 
         function togglePassword() {

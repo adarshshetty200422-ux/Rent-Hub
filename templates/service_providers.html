@@ -22,9 +22,12 @@
             <a href="{{ url_for('dashboard_user') }}" class="btn-nav-profile">
                 <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
             </a>
-            <a href="{{ url_for('logout') }}" class="btn-nav-logout" id="logout-btn">
+            <a href="#" onclick="document.getElementById('logout-form').submit(); return false;" class="btn-nav-logout" id="logout-btn">
                 <i class="fa-solid fa-right-from-bracket"></i> Logout
             </a>
+            <form id="logout-form" action="{{ url_for('logout') }}" method="POST" style="display:none;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            </form>
         </div>
     </nav>
 
@@ -41,9 +44,15 @@
                 <div class="card" style="display: flex; flex-direction: column; overflow: hidden; transition: var(--transition);">
                     <div class="card-body" style="background: var(--surface); flex: 1; padding: 24px;">
                         <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
-                            <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--primary)); display: flex; align-items: center; justify-content: center; font-size: 25px; font-weight: bold; color: white;">
-                                {{ provider.username[0] | upper }}
-                            </div>
+                            {% if provider.profile_pic %}
+                                <div style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center;">
+                                    <img src="{{ url_for('static', filename=provider.profile_pic.replace('static/', '')) }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                            {% else %}
+                                <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--primary)); display: flex; align-items: center; justify-content: center; font-size: 25px; font-weight: bold; color: white;">
+                                    {{ provider.username[0] | upper }}
+                                </div>
+                            {% endif %}
                             <div>
                                 <h3 style="font-size: 22px; margin: 0;">{{ provider.username }}</h3>
                                 <!-- Online Status -->
@@ -58,6 +67,14 @@
                                     Offline
                                 </span>
                                 {% endif %}
+                                <div style="margin-top: 5px; font-size: 0.9rem; color: #f1c40f; display: flex; align-items: center; gap: 4px;">
+                                    {% if provider.rating %}
+                                        {% for i in range(provider.rating|int) %}⭐{% endfor %}
+                                        <span style="color: var(--text-muted); font-weight: 400;">({{ "%.1f"|format(provider.rating) }} / {{ provider.rating_count }})</span>
+                                    {% else %}
+                                        <span style="color: var(--text-muted); font-weight: 400;">No reviews yet</span>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                         
@@ -70,14 +87,14 @@
                             </p>
                             <p style="font-size: 17px; color: var(--text-secondary);">
                                 <i class="fa-solid fa-clock" style="width: 20px; color: var(--text-muted);"></i>
-                                <span class="{{ 'text-success' if provider.availability == 'Available' else 'text-danger' }}" style="font-weight: 600;">
-                                    {{ provider.availability or 'Not specified' }}
+                                <span class="{{ 'text-success' if provider.availability == 'AVAILABLE' else 'text-danger' }}" style="font-weight: 600;">
+                                    {{ provider.availability or 'NOT SPECIFIED' }}
                                 </span>
                             </p>
                         </div>
-                        {% if provider.availability == 'Booked' %}
+                        {% if provider.availability == 'BOOKED' %}
                             <button class="btn btn-secondary btn-block" style="width: 100%; text-align: center; cursor: not-allowed; opacity: 0.7;" disabled><i class="fa-solid fa-ban"></i> Booked</button>
-                        {% elif provider.availability == 'Not Available' %}
+                        {% elif provider.availability == 'NOT AVAILABLE' %}
                             <button class="btn btn-secondary btn-block" style="width: 100%; text-align: center; cursor: not-allowed; opacity: 0.7;" disabled><i class="fa-solid fa-ban"></i> Not Available</button>
                         {% elif (provider.deposit_balance or 0) < 2000 %}
                             <button class="btn btn-secondary btn-block" style="width: 100%; text-align: center; cursor: not-allowed; opacity: 0.7;" disabled><i class="fa-solid fa-ban"></i> Not Accepting Requests</button>

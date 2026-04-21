@@ -30,10 +30,22 @@
         {% endif %}
         {% endwith %}
 
-        <form id="authForm" method="POST" action="{{ url_for('user') }}" autocomplete="off" class="auth-form">
+        <form id="authForm" method="POST" action="{{ url_for('user') }}" autocomplete="off" class="auth-form" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="usr_user" placeholder="Enter your username" required autocomplete="off">
+            </div>
+
+            <div id="registerFields" style="display: none;">
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label for="gmail">Gmail ID</label>
+                    <input type="email" id="gmail" name="gmail" placeholder="Enter Gmail ID">
+                </div>
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label for="profile_pic">Profile Picture (Optional)</label>
+                    <input type="file" id="profile_pic" name="profile_pic" accept="image/*" class="form-control" style="padding: 8px;">
+                </div>
             </div>
 
             <div class="form-group">
@@ -47,6 +59,9 @@
                         </svg>
                     </button>
                 </div>
+            </div>
+            <div id="forgotPasswordContainer" style="text-align: right; margin-bottom: 15px; margin-top: -10px;">
+                <a href="{{ url_for('forgot_password') }}" style="color: var(--primary); font-size: 0.85em; text-decoration: none;">Forgot Password?</a>
             </div>
 
             <button type="submit" id="submitBtn" class="btn btn-primary btn-block">Sign In</button>
@@ -79,6 +94,8 @@
             const toggleBtn = document.getElementById("toggleBtn");
             const authForm = document.getElementById("authForm");
             const submitBtn = document.getElementById("submitBtn");
+            const registerFields = document.getElementById("registerFields");
+            const gmailInput = document.getElementById("gmail");
 
             if (isLogin) {
                 formTitle.innerText = "User Authentication";
@@ -86,16 +103,25 @@
                 toggleBtn.innerText = "Don't have an account? Register here";
                 submitBtn.innerText = "Sign In";
                 authForm.action = "{{ url_for('user') }}";
+                if(registerFields) registerFields.style.display = "none";
+                if(gmailInput) gmailInput.removeAttribute("required");
+                const forgotContainer = document.getElementById("forgotPasswordContainer");
+                if(forgotContainer) forgotContainer.style.display = "block";
             } else {
                 formTitle.innerText = "Create Account";
                 formSubtitle.innerText = "Register to start using Rent Hub";
                 toggleBtn.innerText = "Already have an account? Sign in";
                 submitBtn.innerText = "Create Account";
                 authForm.action = "{{ url_for('register_user') }}";
+                if(registerFields) registerFields.style.display = "block";
+                if(gmailInput) gmailInput.setAttribute("required", "required");
+                const forgotContainer = document.getElementById("forgotPasswordContainer");
+                if(forgotContainer) forgotContainer.style.display = "none";
             }
 
             document.getElementById("username").value = "";
             document.getElementById("password").value = "";
+            if(gmailInput) gmailInput.value = "";
         }
 
         function togglePassword() {

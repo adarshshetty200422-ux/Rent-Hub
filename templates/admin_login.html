@@ -31,6 +31,7 @@
         {% endwith %}
 
         <form method="POST" autocomplete="off" class="auth-form" id="admin-login-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="adm_user">Username</label>
                 <input type="text" id="adm_user" name="adm_user" placeholder="Enter admin username" required autocomplete="off">
@@ -47,6 +48,9 @@
                         </svg>
                     </button>
                 </div>
+            </div>
+            <div style="text-align: right; margin-bottom: 15px; margin-top: -10px;">
+                <a href="{{ url_for('forgot_password') }}" style="color: var(--primary); font-size: 0.85em; text-decoration: none;">Forgot Password?</a>
             </div>
 
             <button type="submit" class="btn btn-primary btn-block" id="admin-login-submit">Sign In</button>

@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rent Hub — Project Flow Diagram</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0e1a;
+      --surface: #111827;
+      --surface2: #1a2235;
+      --border: #1e2d4a;
+      --accent: #6366f1;
+      --accent2: #818cf8;
+      --teal: #14b8a6;
+      --rose: #f43f5e;
+      --amber: #f59e0b;
+      --green: #10b981;
+      --text: #e2e8f0;
+      --muted: #64748b;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 20%, rgba(99,102,241,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(20,184,166,0.06) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper { position: relative; z-index: 1; }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      padding: 48px 24px 32px;
+    }
+    .logo-badge {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(20,184,166,0.1));
+      border: 1px solid rgba(99,102,241,0.3);
+      border-radius: 999px; padding: 6px 18px;
+      font-size: 12px; font-weight: 600; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--accent2);
+      margin-bottom: 20px;
+    }
+    .logo-badge span { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
+    header h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      background: linear-gradient(135deg, #e2e8f0 0%, #6366f1 50%, #14b8a6 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      line-height: 1.15; margin-bottom: 12px;
+    }
+    header p { color: var(--muted); font-size: 1rem; }
+
+    /* ── Tab Navigation ── */
+    .tabs {
+      display: flex; justify-content: center; gap: 8px;
+      padding: 0 24px 32px; flex-wrap: wrap;
+    }
+    .tab {
+      padding: 9px 20px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--muted);
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .tab:hover { border-color: var(--accent); color: var(--text); }
+    .tab.active {
+      background: linear-gradient(135deg, var(--accent), #4f46e5);
+      border-color: transparent; color: #fff; font-weight: 600;
+      box-shadow: 0 4px 16px rgba(99,102,241,0.4);
+    }
+
+    /* ── Diagram Panels ── */
+    .panel { display: none; padding: 0 24px 60px; max-width: 1400px; margin: 0 auto; }
+    .panel.active { display: block; }
+
+    .diagram-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+    }
+    .diagram-card-header {
+      padding: 18px 24px;
+      background: linear-gradient(90deg, var(--surface2), var(--surface));
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .diagram-card-header .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+    }
+    .diagram-card-header h2 { font-size: 1rem; font-weight: 600; color: var(--text); }
+    .diagram-card-header p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .mermaid-wrap {
+      padding: 32px 24px;
+      overflow-x: auto;
+      display: flex; justify-content: center;
+    }
+    .mermaid { min-width: 300px; }
+
+    /* ── Grid layout for overview ── */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    /* ── Legend / Role Cards ── */
+    .role-cards {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px; margin-bottom: 24px;
+    }
+    .role-card {
+      border-radius: 14px; padding: 20px 22px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+    }
+    .role-card .icon { font-size: 2rem; margin-bottom: 10px; }
+    .role-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .role-card ul { list-style: none; }
+    .role-card ul li { font-size: 12.5px; color: var(--muted); padding: 3px 0; }
+    .role-card ul li::before { content: '→ '; color: var(--accent2); }
+    .role-card.admin { border-color: rgba(244,63,94,0.3); }
+    .role-card.admin h3 { color: var(--rose); }
+    .role-card.user  { border-color: rgba(99,102,241,0.3); }
+    .role-card.user  h3 { color: var(--accent2); }
+    .role-card.emp   { border-color: rgba(20,184,166,0.3); }
+    .role-card.emp   h3 { color: var(--teal); }
+
+    /* ── Stats bar ── */
+    .stats {
+      display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px;
+    }
+    .stat {
+      flex: 1; min-width: 120px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 20px; text-align: center;
+    }
+    .stat .val { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--teal)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat .lbl { font-size: 11px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+    .panel.active { animation: fadeIn 0.35s ease; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <header>
+    <div class="logo-badge"><span></span> Flow Diagram</div>
+    <h1>Rent Hub<br/>Architecture & Flow</h1>
+    <p>Visual overview of all roles, routes, and data flows</p>
+  </header>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('overview')">🗺️ Overview</button>
+    <button class="tab" onclick="switchTab('auth')">🔐 Authentication</button>
+    <button class="tab" onclick="switchTab('user')">👤 User Flow</button>
+    <button class="tab" onclick="switchTab('employee')">👷 Employee Flow</button>
+    <button class="tab" onclick="switchTab('admin')">🛡️ Admin Flow</button>
+    <button class="tab" onclick="switchTab('payment')">💳 Payment Flow</button>
+    <button class="tab" onclick="switchTab('db')">🗃️ Database</button>
+  </div>
+
+  <!-- ══════════ OVERVIEW ══════════ -->
+  <div class="panel active" id="panel-overview">
+    <div class="stats">
+      <div class="stat"><div class="val">3</div><div class="lbl">Roles</div></div>
+      <div class="stat"><div class="val">28+</div><div class="lbl">Routes</div></div>
+      <div class="stat"><div class="val">7</div><div class="lbl">DB Tables</div></div>
+      <div class="stat"><div class="val">13</div><div class="lbl">Templates</div></div>
+      <div class="stat"><div class="val">Razorpay</div><div class="lbl">Payment</div></div>
+    </div>
+
+    <div class="role-cards">
+      <div class="role-card admin">
+        <div class="icon">🛡️</div>
+        <h3>Admin</h3>
+        <ul>
+          <li>Approve / Reject Employees</li>
+          <li>Block / Unblock Accounts</li>
+          <li>Handle Withdrawal Requests</li>
+          <li>Send Warnings</li>
+          <li>View All Requests</li>
+        </ul>
+      </div>
+      <div class="role-card user">
+        <div class="icon">👤</div>
+        <h3>User</h3>
+        <ul>
+          <li>Register & Login</li>
+          <li>Browse &amp; Book Services</li>
+          <li>Deposit via Razorpay</li>
+          <li>Withdraw Deposit (Bank)</li>
+          <li>Accept Pending Employees</li>
+        </ul>
+      </div>
+      <div class="role-card emp">
+        <div class="icon">👷</div>
+        <h3>Employee</h3>
+        <ul>
+          <li>Apply & Await Approval</li>
+          <li>Accept / Reject Bookings</li>
+          <li>Deposit via Razorpay</li>
+          <li>Withdraw Deposit (Bank)</li>
+          <li>Update Availability</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="diagram-card">
+      <div class="diagram-card-header">
+        <div class="dot" style="background:#6366f1"></div>
+        <div><h2>System Entry & Role Routing</h2><p>How users enter and navigate the system</p></div>
+      </div>
+      <div class="mermaid-wrap">
+        <div class="mermaid">
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#1a2235', 'primaryTextColor': '#e2e8f0', 'primaryBorderColor': '#6366f1', 'lineColor': '#6366f1', 'secondaryColor': '#111827', 'tertiaryColor': '#0a0e1a', 'background': '#0a0e1a', 'mainBkg': '#1a2235', 'nodeBorder': '#6366f1', 'clusterBkg': '#111827', 'titleColor': '#e2e8f0', 'edgeLabelBackground': '#111827', 'fontFamily': 'Inter' }}}%%
+flowchart TD
+    A(["🌐 Homepage /"]):::start --> B["Login Portal\nindex.html"]:::page
+    B --> C["Admin Login\n/admin"]:::adminNode
+    B --> D["User Login\n/user"]:::userNode
+    B --> E["Employee Login\n/employee"]:::empNode
+
+    D --> REGUSER["Register User\n/register_user"]:::userNode
+    E --> REGEMP["Register Employee\n/register_employee"]:::empNode
+
+    REGUSER --> AUTOLOGIN["Auto Login + Session"]:::success
+    AUTOLOGIN --> USER["👤 User Dashboard\n/dashboard_user"]:::userNode
+
+    REGEMP --> PENDING["⏳ Pending Approval\naccount_status = pending"]:::pending
+
+    C --> ADMIN["🛡️ Admin Dashboard\n/dashboard_admin"]:::adminNode
+    D --> USER
+    E --> EMP["👷 Employee Dashboard\n/dashboard_employee"]:::empNode
+
+    PENDING --> ADMIN
+    ADMIN -- "Approve Employee" --> EMAILCREDS["Send Email Credentials\nvia Flask-Mail"]:::success
+    EMAILCREDS --> EMP
+
+    USER -- Logout --> LOGOUTNODE["POST /logout\nClear session\nis_online = 0"]:::muted
+    EMP -- Logout --> LOGOUTNODE
+    ADMIN -- Logout --> LOGOUTNODE
+    LOGOUTNODE --> B
+
+    classDef start    fill:#6366f1,stroke:#4f46e5,color:#fff,font-weight:700
+    classDef page     fill:#1a2235,stroke:#364565,color:#e2e8f0
+    classDef adminNode fill:#2d1b2e,stroke:#f43f5e,color:#f9a8d4
+    classDef userNode  fill:#1b1f39,stroke:#6366f1,color:#a5b4fc
+    classDef empNode   fill:#0f2929,stroke:#14b8a6,color:#5eead4
+    classDef success   fill:#064e3b,stroke:#10b981,color:#6ee7b7
+    classDef pending   fill:#2d1b00,stroke:#f59e0b,color:#fcd34d
+    classDef muted     fill:#1a2235,stroke:#475569,color:#94a3b8
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ AUTH ══════════ -->
+  <div class="panel" id="panel-auth">
+    <div class="diagram-card">
+      <div class="diagram-card-header">
+        <div class="dot" style="background:#f43f5e"></div>
+        <div><h2>Authentication Flow</h2><p>Login, session management, and CSRF protection</p></div>
+      </div>
+      <div class="mermaid-wrap">
+        <div class="mermaid">
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#1a2235', 'primaryTextColor': '#e2e8f0', 'primaryBorderColor': '#6366f1', 'lineColor': '#818cf8', 'secondaryColor': '#111827', 'tertiaryColor': '#0a0e1a', 'mainBkg': '#1a2235','fontFamily': 'Inter' }}}%%
+flowchart TD
+    START(["POST /login"]):::start
+    --> FIELDS{"Credentials\nProvided?"}:::decision
+
+    FIELDS -- No --> ERR1["⚠️ Flash: Missing credentials\nRedirect → /"]:::error
+    FIELDS -- Yes --> DBCHECK{"User in DB?\naccount_status = approved?"}:::decision
+
+    DBCHECK -- No --> ERR2["⚠️ Flash: Invalid credentials"]:::error
+    DBCHECK -- Yes --> HASH{"check_password_hash\n(werkzeug)"}:::decision
+
+    HASH -- ❌ Fail --> ERR2
+    HASH -- ✅ Match --> SESSION["Set session:\nuser_id · username · role\nSET is_online = 1"]:::success
+
+    SESSION --> ROLE{"role?"}:::decision
+    ROLE -- admin --> DA["🛡️ /dashboard_admin"]:::adminNode
+    ROLE -- user --> DU["👤 /dashboard_user"]:::userNode
+    ROLE -- employee --> DE["👷 /dashboard_employee"]:::empNode
+
+    CSRF["Flask-WTF CSRFProtect\n(all forms protected)"]:::info -.-> FIELDS
+    WERKZEUG["generate_password_hash\non registration/approval"]:::info -.-> HASH
+    COOKIE["SESSION_COOKIE_HTTPONLY\nSESSION_COOKIE_SAMESITE=Lax"]:::info -.-> SESSION
+
+    classDef start    fill:#6366f1,stroke:#4f46e5,color:#fff,font-weight:700
+    classDef decision fill:#1e2d4a,stroke:#475569,color:#cbd5e1
+    classDef error    fill:#3f0d14,stroke:#f43f5e,color:#fca5a5
+    classDef success  fill:#064e3b,stroke:#10b981,color:#6ee7b7
+    classDef adminNode fill:#2d1b2e,stroke:#f43f5e,color:#f9a8d4
+    classDef userNode  fill:#1b1f39,stroke:#6366f1,color:#a5b4fc
+    classDef empNode   fill:#0f2929,stroke:#14b8a6,color:#5eead4
+    classDef info      fill:#1a2235,stroke:#334155,color:#94a3b8,font-style:italic
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ USER ══════════ -->
+  <div class="panel" id="panel-user">
+    <div class="diagram-card">
+      <div class="diagram-card-header">
+        <div class="dot" style="background:#6366f1"></div>
+        <div><h2>User Flow</h2><p>Service discovery, booking, deposits, and withdrawals</p></div>
+      </div>
+      <div class="mermaid-wrap">
+        <div class="mermaid">
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#1a2235', 'primaryTextColor': '#e2e8f0', 'primaryBorderColor': '#6366f1', 'lineColor': '#818cf8', 'secondaryColor': '#111827', 'tertiaryColor': '#0a0e1a', 'mainBkg': '#1a2235','fontFamily': 'Inter' }}}%%
+flowchart TD
+    UD(["👤 User Dashboard"]):::userNode
+    UD --> SRV["Browse Services\n/view_service/name"]:::action
+    UD --> DEP["Add Deposit\n/user_add_deposit"]:::action
+    UD --> WD["Withdraw Deposit\n/user_withdraw_deposit"]:::action
+    UD --> EDIT["Edit Profile\n/update_user"]:::action
+    UD --> ACCEMP["Accept Employee\n/accept_employee/id"]:::action
+
+    SRV --> PROV["Service Providers List\nservice_providers.html"]:::page
+    PROV --> EMPD["Employee Details\n/user_employee_details/id"]:::page
+    EMPD --> BOOK["Book Service\n/book_service/emp_id"]:::action
+
+    BOOK --> CHUBAL{"User deposit\n≥ ₹500?"}:::decision
+    CHUBAL -- No --> ERR1["⚠️ Insufficient deposit\nMust maintain ₹500"]:::error
+    CHUBAL -- Yes --> CHKEMPBAL{"Employee deposit\n≥ ₹2000?"}:::decision
+    CHKEMPBAL -- No --> ERR2["⚠️ Employee not accepting\nMust maintain ₹2000"]:::error
+    CHKEMPBAL -- Yes --> CHKAVAIL{"Employee\nAvailability?"}:::decision
+    CHKAVAIL -- "Booked / Not Available" --> ERR3["⚠️ Not available"]:::error
+    CHKAVAIL -- Available --> DUPCHK{"Existing Pending\nRequest?"}:::decision
+    DUPCHK -- Yes --> ERR4["⚠️ Already requested"]:::error
+    DUPCHK -- No --> SREQ["✅ Insert service_request\nstatus = Pending\nNotify User & Employee"]:::success
+
+    DEP --> RAZORPAY["Razorpay Order Created\n→ payment.html"]:::payment
+    RAZORPAY --> PAID["POST /complete_deposit\nVerify Signature\ndeposit_balance += amount"]:::success
+
+    WD --> WAMTCHK{"Amount ≤\nCurrent Balance?"}:::decision
+    WAMTCHK -- No --> WERR["⚠️ Insufficient balance"]:::error
+    WAMTCHK -- Yes --> CONF{"confirmed\n= true?"}:::decision
+    CONF -- No --> BANKFORM["withdraw_form.html\nCollect bank details"]:::page
+    BANKFORM --> CONF
+    CONF -- Yes --> THRESHCHK{"Remaining ≥ ₹500?"}:::decision
+    THRESHCHK -- Yes --> AUTOAPPR["✅ Auto-Approved\nInsert withdrawal_request"]:::success
+    THRESHCHK -- No --> ADMINPEND["⏳ Pending Admin\nInsert withdrawal_request"]:::pending
+
+    ACCEMP --> GENPWD["Generate random password\nhash & approve employee\nSend email via Flask-Mail"]:::success
+
+    classDef userNode  fill:#1b1f39,stroke:#6366f1,color:#a5b4fc,font-weight:700
+    classDef action    fill:#1a2235,stroke:#475569,color:#cbd5e1
+    classDef page      fill:#1a2235,stroke:#334155,color:#94a3b8
+    classDef decision  fill:#1e2d4a,stroke:#475569,color:#cbd5e1
+    classDef error     fill:#3f0d14,stroke:#f43f5e,color:#fca5a5
+    classDef success   fill:#064e3b,stroke:#10b981,color:#6ee7b7
+    classDef pending   fill:#2d1b00,stroke:#f59e0b,color:#fcd34d
+    classDef payment   fill:#1a1040,stroke:#818cf8,color:#c7d2fe
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ EMPLOYEE ══════════ -->
+  <div class="panel" id="panel-employee">
+    <div class="diagram-card">
+      <div class="diagram-card-header">
+        <div class="dot" style="background:#14b8a6"></div>
+        <div><h2>Employee Flow</h2><p>Handling bookings, deposits, and withdrawal requests</p></div>
+      </div>
+      <div class="mermaid-wrap">
+        <div class="mermaid">
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#1a2235', 'primaryTextColor': '#e2e8f0', 'primaryBorderColor': '#14b8a6', 'lineColor': '#5eead4', 'secondaryColor': '#111827', 'tertiaryColor': '#0a0e1a', 'mainBkg': '#1a2235','fontFamily': 'Inter' }}}%%
+flowchart TD
+    REG(["Employee Registration\n/register_employee"]):::empNode
+    REG --> PEND["⏳ account_status = pending\nAwaits admin or user approval"]:::pending
+
+    PEND --> NOTIFIED["Email sent with credentials\nvia Flask-Mail"]:::success
+    NOTIFIED --> LOGIN
+
+    LOGIN(["Employee Login\n/employee"]):::empNode
+    LOGIN --> ED(["👷 Employee Dashboard\n/dashboard_employee"]):::empNode
+
+    ED --> VIEWREQ["View Pending\nService Requests"]:::action
+    ED --> ADDEP["Add Deposit\n/add_deposit → Razorpay"]:::payment
+    ED --> WDEP["Withdraw Deposit\n/withdraw_deposit"]:::action
+    ED --> AVAIL["Update Availability\n/update_employee_availability"]:::action
+    ED --> PROFILE["Update Profile\n/update_employee"]:::action
+
+    VIEWREQ --> HANDLE["/employee_handle_request\n/req_id/action"]:::action
+    HANDLE --> DCHK{"Employee deposit\n≥ ₹2000?"}:::decision
+    DCHK -- No --> DERR["⚠️ Must maintain ₹2000\nto accept requests"]:::error
+    DCHK -- Yes --> ACT{"Action?"}:::decision
+    ACT -- accept --> ACCEPTED["✅ status = Accepted\navailability = Booked\nNotify User"]:::success
+    ACT -- reject --> REJECTED["❌ status = Rejected\nNotify User"]:::error
+
+    ADDEP --> RAZORPAY["Razorpay payment.html\n→ /complete_deposit\ndeposit_balance += amount"]:::payment
+
+    WDEP --> WBAL{"Amount ≤ Balance?"}:::decision
+    WBAL -- No --> WERR["⚠️ Insufficient balance"]:::error
+    WBAL -- Yes --> WCONF{"confirmed = true?"}:::decision
+    WCONF -- No --> BANKFORM["withdraw_form.html\nCollect bank details"]:::page
+    BANKFORM --> WCONF
+    WCONF -- Yes --> THRESH{"Remaining ≥ ₹2000?"}:::decision
+    THRESH -- Yes --> AUTO["✅ Auto-Approved\nInsert withdrawal_request"]:::success
+    THRESH -- No --> ADMPEND["⏳ Pending Admin\nInsert withdrawal_request"]:::pending
+
+    classDef empNode   fill:#0f2929,stroke:#14b8a6,color:#5eead4,font-weight:700
+    classDef action    fill:#1a2235,stroke:#475569,color:#cbd5e1
+    classDef page      fill:#1a2235,stroke:#334155,color:#94a3b8
+    classDef decision  fill:#1e2d4a,stroke:#475569,color:#cbd5e1
+    classDef error     fill:#3f0d14,stroke:#f43f5e,color:#fca5a5
+    classDef success   fill:#064e3b,stroke:#10b981,color:#6ee7b7
+    classDef pending   fill:#2d1b00,stroke:#f59e0b,color:#fcd34d
+    classDef payment   fill:#1a1040,stroke:#818cf8,color:#c7d2fe
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ ADMIN ══════════ -->
+  <div class="panel" id="panel-admin">
+    <div class="diagram-card">
+      <div class="diagram-card-header">
+        <div class="dot" style="background:#f43f5e"></div>
+        <div><h2>Admin Flow</h2><p>Full control over users, employees, and transactions</p></div>
+      </div>
+      <div class="mermaid-wrap">
+        <div class="mermaid">
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#1a2235', 'primaryTextColor': '#e2e8f0', 'primaryBorderColor': '#f43f5e', 'lineColor': '#f9a8d4', 'secondaryColor': '#111827', 'tertiaryColor': '#0a0e1a', 'mainBkg': '#1a2235','fontFamily': 'Inter' }}}%%
+flowchart LR
+    AD(["🛡️ Admin Dashboard\n/dashboard_admin"]):::adminNode
+
+    AD --> EMP_PEND["Pending Employees\nList"]:::section
+    AD --> USERMGT["User Management"]:::section
+    AD --> EMPMGT["Employee Management"]:::section
+    AD --> WDRAWMGT["Withdrawal Requests\nwithdrawal_requests table"]:::section
+    AD --> REQMGT["Item Requests\nrequests table"]:::section
+
+    EMP_PEND --> AACCEPT["/admin_accept_employee/id\n→ Generate password\n→ Hash & approve\n→ Send email credentials"]:::success
+    EMP_PEND --> AREJECT["/admin_reject_employee/id\n→ status = rejected\n→ Notify employee"]:::error
+
+    USERMGT --> USERDET["/admin_user_details/id\nadmin_user_details.html"]:::page
+    USERDET --> WARNUSR["/admin_warn_user/id\nInsert user_messages"]:::action
+    USERDET --> BLKUSR["/admin_toggle_block/id\napproved ↔ blocked\nNotify user"]:::action
+
+    EMPMGT --> EMPDET["/admin_employee_details/id\nadmin_employee_details.html"]:::page
+    EMPDET --> WARNEMP["/admin_warn_employee/id\nInsert employee_messages"]:::action
+    EMPDET --> BLKEMP["/admin_toggle_block/id\napproved ↔ blocked\nNotify employee"]:::action
+
+    WDRAWMGT --> APPRVW["/admin_handle_withdrawal\n/id/approve\n→ status = Approved\n→ Notify user"]:::success
+    WDRAWMGT --> REJW["/admin_handle_withdrawal\n/id/reject\n→ status = Rejected\n→ Refund deposit_balance\n→ Notify user"]:::error
+
+    REQMGT --> ACCREQ["/admin_update_request\n/id/accept\n→ status = Approved"]:::success
+    REQMGT --> REJREQ["/admin_update_request\n/id/reject\n→ status = Rejected"]:::error
+
+    classDef adminNode fill:#2d1b2e,stroke:#f43f5e,color:#f9a8d4,font-weight:700
+    classDef section   fill:#1a2235,stroke:#7c3aed,color:#c4b5fd
+    classDef page      fill:#1a2235,stroke:#334155,color:#94a3b8
+    classDef action    fill:#1a2235,stroke:#475569,color:#cbd5e1
+    classDef error     fill:#3f0d14,stroke:#f43f5e,color:#fca5a5
+    classDef success   fill:#064e3b,stroke:#10b981,color:#6ee7b7
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ PAYMENT ══════════ -->
+  <div class="panel" id="panel-payment">
+    <div class="diagram-card">
+      <div class="diagram-card-header">
+        <div class="dot" style="background:#818cf8"></div>
+        <div><h2>Razorpay Payment Flow</h2><p>End-to-end deposit payment with signature verification</p></div>
+      </div>
+      <div class="mermaid-wrap">
+        <div class="mermaid">
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#1a2235', 'primaryTextColor': '#e2e8f0', 'primaryBorderColor': '#818cf8', 'lineColor': '#818cf8', 'secondaryColor': '#111827', 'tertiaryColor': '#0a0e1a', 'mainBkg': '#1a2235','fontFamily': 'Inter' }}}%%
+flowchart TD
+    INIT(["User/Employee\nInitiates Deposit"]):::payment
+    --> ENTER["Enter Amount"]:::action
+    --> VALIDATE{"Amount > 0?"}:::decision
+
+    VALIDATE -- No --> ERR["⚠️ Flash: Invalid amount"]:::error
+    VALIDATE -- Yes --> CREATE["razorpay.Client.order.create\namount in paise, INR\npayment_capture = 1"]:::payment
+
+    CREATE --> PAYPAGE["payment.html\nRazorpay JS Checkout\nkey_id + order_id"]:::page
+    PAYPAGE --> USERPAYS["User completes\npayment in popup"]:::action
+
+    USERPAYS -- Success --> CALLBACK["POST /complete_deposit\nrazorpay_payment_id\nrazorpay_order_id\nrazorpay_signature"]:::payment
+
+    CALLBACK --> VERIFYSIG{"Verify HMAC-SHA256\nsignature"}:::decision
+    VERIFYSIG -- Invalid --> SIGFAIL["⚠️ Flash: Verification failed\nRedirect to Dashboard"]:::error
+    VERIFYSIG -- Valid --> UPDATEBAL["UPDATE users\nSET deposit_balance = deposit_balance + amount\nWHERE id = user_id"]:::success
+
+    UPDATEBAL --> ROLEREDIRECT{"role =\nemployee?"}:::decision
+    ROLEREDIRECT -- Yes --> EMP["Redirect to\n/dashboard_employee"]:::empNode
+    ROLEREDIRECT -- No --> USER["Redirect to\n/dashboard_user"]:::userNode
+
+    USERPAYS -- Failed/Dismissed --> DASHBOARD["Back to Dashboard\n(no DB change)"]:::action
+
+    classDef payment   fill:#1a1040,stroke:#818cf8,color:#c7d2fe,font-weight:600
+    classDef action    fill:#1a2235,stroke:#475569,color:#cbd5e1
+    classDef page      fill:#1a2235,stroke:#334155,color:#94a3b8
+    classDef decision  fill:#1e2d4a,stroke:#475569,color:#cbd5e1
+    classDef error     fill:#3f0d14,stroke:#f43f5e,color:#fca5a5
+    classDef success   fill:#064e3b,stroke:#10b981,color:#6ee7b7
+    classDef empNode   fill:#0f2929,stroke:#14b8a6,color:#5eead4
+    classDef userNode  fill:#1b1f39,stroke:#6366f1,color:#a5b4fc
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ DATABASE ══════════ -->
+  <div class="panel" id="panel-db">
+    <div class="diagram-card">
+      <div class="diagram-card-header">
+        <div class="dot" style="background:#10b981"></div>
+        <div><h2>Database Schema (ER Diagram)</h2><p>All 7 tables and their relationships (SQLite)</p></div>
+      </div>
+      <div class="mermaid-wrap">
+        <div class="mermaid">
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#1a2235', 'primaryTextColor': '#e2e8f0', 'primaryBorderColor': '#10b981', 'lineColor': '#6ee7b7', 'secondaryColor': '#111827', 'tertiaryColor': '#0a0e1a', 'mainBkg': '#1a2235','fontFamily': 'Inter' }}}%%
+erDiagram
+    users {
+        int id PK
+        text username
+        text password
+        text role
+        text gmail
+        text work_details
+        text account_status
+        text availability
+        int is_online
+        real deposit_balance
+        int balance
+    }
+    requests {
+        int id PK
+        int user_id FK
+        text item_name
+        text status
+    }
+    service_requests {
+        int id PK
+        int user_id FK
+        int employee_id FK
+        text status
+    }
+    withdrawal_requests {
+        int id PK
+        int user_id FK
+        real amount
+        text status
+        text bank_details
+        text requested_at
+    }
+    withdraw_requests {
+        int id PK
+        int user_id FK
+        text upi_id
+        int amount
+        text status
+    }
+    user_messages {
+        int id PK
+        int user_id FK
+        text message
+    }
+    employee_messages {
+        int id PK
+        text gmail
+        text message
+    }
+
+    users ||--o{ requests : "submits item"
+    users ||--o{ service_requests : "books as user"
+    users ||--o{ service_requests : "receives as employee"
+    users ||--o{ withdrawal_requests : "bank withdrawal"
+    users ||--o{ withdraw_requests : "UPI withdrawal"
+    users ||--o{ user_messages : "receives notification"
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    securityLevel: 'loose',
+    fontFamily: 'Inter',
+    er: { diagramPadding: 20 },
+    flowchart: { curve: 'basis', padding: 20 }
+  });
+
+  function switchTab(id) {
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      const ids = ['overview','auth','user','employee','admin','payment','db'];
+      t.classList.toggle('active', ids[i] === id);
+    });
+    document.querySelectorAll('.panel').forEach(p => {
+      p.classList.toggle('active', p.id === 'panel-' + id);
+    });
+  }
+</script>
+</body>
+</html>

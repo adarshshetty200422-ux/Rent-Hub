@@ -1617,3 +1617,103 @@ body.dashboard-body {
 .text-success { color: var(--success); }
 .text-danger { color: var(--danger); }
 .text-muted { color: var(--text-muted); }
+/* ===========================
+   Withdrawal Slider Styles
+   =========================== */
+.withdrawal-slider-container {
+    margin-top: 20px;
+    position: relative;
+}
+
+.withdrawal-slider {
+    display: flex;
+    overflow-x: auto;
+    gap: 20px;
+    padding: 10px 5px 25px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) var(--surface);
+}
+
+.withdrawal-slider::-webkit-scrollbar {
+    height: 6px;
+}
+
+.withdrawal-slider::-webkit-scrollbar-track {
+    background: var(--surface);
+    border-radius: 10px;
+}
+
+.withdrawal-slider::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 10px;
+}
+
+.withdrawal-card {
+    flex: 0 0 300px;
+    scroll-snap-align: start;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    transition: var(--transition);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.withdrawal-card:hover {
+    border-color: var(--primary-light);
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md), 0 0 15px rgba(108, 92, 231, 0.1);
+}
+
+.withdrawal-card.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(0, 206, 201, 0.2);
+}
+
+.withdrawal-card .status-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+}
+
+.withdrawal-card .amount {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 10px;
+    display: block;
+}
+
+.withdrawal-card .date {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 15px;
+    display: block;
+}
+
+.withdrawal-card .bank-info {
+    font-size: 15px;
+    color: var(--text-secondary);
+    background: var(--surface);
+    padding: 10px;
+    border-radius: var(--radius-md);
+    margin-bottom: 15px;
+    min-height: 60px;
+}
+
+.withdrawal-card .actions {
+    display: flex;
+    gap: 10px;
+}
+
+@media (max-width: 768px) {
+    .withdrawal-card {
+        flex: 0 0 85%;
+    }
+}

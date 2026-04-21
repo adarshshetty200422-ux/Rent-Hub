@@ -39,8 +39,15 @@
         {% endif %}
         {% endwith %}
 
-        <div class="details-header">
-            <h1><i class="fa-solid fa-user-tie"></i> {{ employee.username }}</h1>
+        <div class="details-header" style="display: flex; align-items: center; gap: 20px;">
+            {% if employee.profile_pic %}
+                <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 3px solid var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+                    <img src="{{ url_for('static', filename=employee.profile_pic.replace('static/', '')) }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            {% else %}
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--primary)); display: flex; align-items: center; justify-content: center; font-size: 35px; font-weight: bold; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">{{ employee.username[0] | upper }}</div>
+            {% endif %}
+            <h1 style="margin: 0;"><i class="fa-solid fa-user-tie"></i> {{ employee.username }}</h1>
         </div>
 
         <!-- Profile Info Card -->
@@ -59,7 +66,7 @@
                         </div>
                         <div class="profile-row">
                             <span class="label">Password</span>
-                            <span class="value" style="font-family: 'Courier New', monospace; color: var(--warning);">{{ employee.password }}</span>
+                            <span class="value" style="font-family: 'Courier New', monospace; color: var(--text-muted);">••••••••</span>
                         </div>
                         <div class="profile-row">
                             <span class="label">Gmail ID</span>
@@ -71,8 +78,8 @@
                         </div>
                         <div class="profile-row">
                             <span class="label">Availability</span>
-                            <span class="value {{ 'text-success' if employee.availability == 'Available' else 'text-danger' }}">
-                                {{ employee.availability or 'Available' }}
+                            <span class="value {{ 'text-success' if employee.availability == 'AVAILABLE' else 'text-danger' }}">
+                                {{ employee.availability or 'AVAILABLE' }}
                             </span>
                         </div>
                         <div class="profile-row">
@@ -83,7 +90,84 @@
                             <span class="badge badge-approved">{{ employee.account_status }}</span>
                             {% endif %}
                         </div>
+                        <div class="profile-row" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                            <span class="label" style="color: var(--accent); font-weight: 600;">Saved Bank Details</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="label">Bank Name</span>
+                            <span class="value">{{ employee.bank_name or 'N/A' }}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="label">Branch</span>
+                            <span class="value">{{ employee.bank_branch or 'N/A' }}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="label">Acc Holder</span>
+                            <span class="value">{{ employee.bank_account_name or 'N/A' }}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="label">Acc Number</span>
+                            <span class="value">{{ employee.bank_account_number or 'N/A' }}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="label">IFSC Code</span>
+                            <span class="value">{{ employee.bank_ifsc or 'N/A' }}</span>
+                        </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Withdrawal History Section -->
+        <div class="section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="icon"><i class="fa-solid fa-money-bill-transfer"></i></span> Withdrawal History
+                        <span class="badge badge-approved" style="margin-left: 10px;">Deposit: ₹{{ employee.deposit_balance or 0.0 }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if withdrawals %}
+                    <p style="color: var(--text-muted); margin-bottom: 10px; font-size: 15px;">Slide to view details and select a request.</p>
+                    <div class="withdrawal-slider-container">
+                        <div class="withdrawal-slider">
+                            {% for w in withdrawals %}
+                            <div class="withdrawal-card" onclick="this.classList.toggle('selected')">
+                                <span class="status-badge 
+                                    {% if w.status == 'Approved' %}badge-approved
+                                    {% elif w.status == 'Rejected' %}badge-blocked
+                                    {% else %}badge-pending{% endif %}">
+                                    {{ w.status }}
+                                </span>
+                                <span class="amount">₹{{ w.amount }}</span>
+                                <span class="date"><i class="fa-solid fa-calendar-day"></i> {{ w.requested_at }}</span>
+                                <div class="bank-info">
+                                    <i class="fa-solid fa-building-columns"></i> 
+                                    {{ w.bank_details or 'No details provided' }}
+                                </div>
+                                {% if w.status == 'Pending' %}
+                                <div class="actions">
+                                    <form action="{{ url_for('admin_handle_withdrawal', req_id=w.id, action='approve') }}" method="POST" style="flex: 1;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-success btn-sm btn-block">Approve</button>
+                                    </form>
+                                    <form action="{{ url_for('admin_handle_withdrawal', req_id=w.id, action='reject') }}" method="POST" style="flex: 1;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-danger btn-sm btn-block">Reject</button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">💸</div>
+                        <p>No withdrawal history found for this employee.</p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -99,6 +183,7 @@
                 </div>
                 <div class="card-body">
                     <form action="{{ url_for('admin_warn_employee', emp_id=employee.id) }}" method="POST" style="display: flex; flex-direction: column; gap: 14px;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="form-group">
                             <textarea name="warning_message" rows="4" placeholder="Type a warning message. The employee will see this in their portal..." required></textarea>
                         </div>
@@ -125,6 +210,7 @@
                         {% endif %}
                     </p>
                     <form action="{{ url_for('admin_toggle_block', user_id=employee.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         {% if employee.account_status == 'blocked' %}
                         <button type="submit" class="btn btn-success btn-block" id="toggle-block-btn">
                             <i class="fa-solid fa-lock-open"></i> Unblock Employee

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Deposit</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .loader-container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #00cec9;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="loader-container">
+        <div class="loader"></div>
+        <h2>Initializing Payment...</h2>
+        <p>Please do not refresh the page.</p>
+        <button id="pay-btn" style="display:none;">Deposit</button>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+    var options = {
+        "key": "{{ key_id }}",
+        "amount": "{{ amount * 100 }}",
+        "currency": "INR",
+        "name": "Rent Hub",
+        "description": "Advance Deposit",
+        "order_id": "{{ order_id }}",
+        "handler": function (response){
+            // Submit form to backend on success
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ url_for('complete_deposit') }}";
+
+            const inputAmount = document.createElement('input');
+            inputAmount.type = 'hidden';
+            inputAmount.name = 'amount';
+            inputAmount.value = "{{ amount }}";
+            form.appendChild(inputAmount);
+
+            const inputRole = document.createElement('input');
+            inputRole.type = 'hidden';
+            inputRole.name = 'role';
+            inputRole.value = "{{ role }}";
+            form.appendChild(inputRole);
+
+            const inputCsrf = document.createElement('input');
+            inputCsrf.type = 'hidden';
+            inputCsrf.name = 'csrf_token';
+            inputCsrf.value = "{{ csrf_token() }}";
+            form.appendChild(inputCsrf);
+
+            const inputPaymentId = document.createElement('input');
+            inputPaymentId.type = 'hidden';
+            inputPaymentId.name = 'razorpay_payment_id';
+            inputPaymentId.value = response.razorpay_payment_id;
+            form.appendChild(inputPaymentId);
+
+            document.body.appendChild(form);
+            form.submit();
+        },
+        "modal": {
+            "ondismiss": function(){
+                // Go back to dashboard if user closes modal
+                window.location.href = "{{ url_for('dashboard_user') if role == 'user' else url_for('dashboard_employee') }}";
+            }
+        }
+    };
+
+    var rzp = new Razorpay(options);
+
+    document.getElementById('pay-btn').onclick = function(e){
+        rzp.open();
+        e.preventDefault();
+    }
+    
+    // Automatically trigger
+    window.onload = function() {
+        document.getElementById('pay-btn').click();
+    };
+    </script>
+</body>
+</html>

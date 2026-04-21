@@ -19,17 +19,27 @@
             <span>Rent Hub</span>
         </div>
         <div class="nav-actions">
+
             <a href="#" onclick="toggleDeposit(); return false;" class="btn-nav-logout" style="background: rgba(0, 206, 201, 0.15); color: var(--accent); border-color: rgba(0, 206, 201, 0.2); margin-right: 15px;">
                 <i class="fa-solid fa-wallet"></i> Deposit
             </a>
             <div class="nav-user-info" onclick="toggleProfile()" style="cursor: pointer;" id="profile-btn">
-                <div class="nav-avatar">{{ session.get('username', 'U')[0] }}</div>
+                {% if user_info.profile_pic %}
+                    <div class="nav-avatar" style="border: 2px solid var(--accent); overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                        <img src="{{ url_for('static', filename=user_info.profile_pic.replace('static/', '')) }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                {% else %}
+                    <div class="nav-avatar">{{ session.get('username', 'U')[0] }}</div>
+                {% endif %}
                 <span class="nav-username">{{ session.get('username') }}</span>
                 <span class="nav-role">USER</span>
             </div>
-            <a href="{{ url_for('logout') }}" class="btn-nav-logout" id="logout-btn">
+            <a href="#" onclick="document.getElementById('logout-form').submit(); return false;" class="btn-nav-logout" id="logout-btn">
                 <i class="fa-solid fa-right-from-bracket"></i> Logout
             </a>
+            <form id="logout-form" action="{{ url_for('logout') }}" method="POST" style="display:none;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            </form>
         </div>
     </nav>
 
@@ -73,33 +83,9 @@
 
         <!-- The user deposit section has been moved to a modal -->
 
-        <!-- Pending Employee Approvals -->
-        {% if pending_employees %}
-        <div class="section">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <span class="icon"><i class="fa-solid fa-users-gear"></i></span> Pending Employee Registrations
-                    </div>
-                    <span class="badge badge-pending">{{ pending_employees|length }} pending</span>
-                </div>
-                <div class="card-body">
-                    <div class="pending-grid">
-                        {% for emp in pending_employees %}
-                        <div class="pending-card">
-                            <h4>{{ emp.username }}</h4>
-                            <p class="detail"><strong>Gmail ID:</strong> {{ emp.gmail }}</p>
-                            <p class="detail"><strong>Skills:</strong> {{ emp.work_details }}</p>
-                            <form action="{{ url_for('accept_employee', emp_id=emp.id) }}" method="POST" style="margin-top: 14px;">
-                                <button type="submit" class="btn btn-success btn-sm btn-block" id="accept-emp-{{ emp.id }}">✓ Accept Employee</button>
-                            </form>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
+
+
+
 
         <!-- Available Services -->
         <div class="section">
@@ -155,6 +141,66 @@
                                 </div>
                             </div>
                         </a>
+
+                        <!-- Service 4 -->
+                        <a href="#" onclick="toggleApplianceModal(); return false;" class="service-card" style="text-decoration: none; color: inherit; cursor: pointer; display: block;">
+                            <div class="service-icon-area" style="background: linear-gradient(135deg, #d35400, #e67e22);">
+                                <i class="fa-solid fa-screwdriver-wrench fa-3x" style="color: #f1c40f;"></i>
+                            </div>
+                            <div class="service-details">
+                                <h4>Appliance Service</h4>
+                                <p>Expert repair for AC, Washing Machines, Refrigerators, and TVs.</p>
+                                <div class="service-tags">
+                                    <span class="tag">Repair</span>
+                                    <span class="tag">Appliance</span>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Service 5 -->
+                        <a href="{{ url_for('view_service', service_name='Moving / Shifting Service') }}" class="service-card" style="text-decoration: none; color: inherit; cursor: pointer; display: block;">
+                            <div class="service-icon-area" style="background: linear-gradient(135deg, #16a085, #1abc9c);">
+                                <i class="fa-solid fa-truck-fast fa-3x" style="color: #ecf0f1;"></i>
+                            </div>
+                            <div class="service-details">
+                                <h4>Moving / Shifting Service</h4>
+                                <p>Professional moving and packing services for relocations.</p>
+                                <div class="service-tags">
+                                    <span class="tag">Transport</span>
+                                    <span class="tag">Moving</span>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Service 6 -->
+                        <a href="{{ url_for('view_service', service_name='Cleaning Service') }}" class="service-card" style="text-decoration: none; color: inherit; cursor: pointer; display: block;">
+                            <div class="service-icon-area" style="background: linear-gradient(135deg, #8e44ad, #9b59b6);">
+                                <i class="fa-solid fa-broom fa-3x" style="color: #f1c40f;"></i>
+                            </div>
+                            <div class="service-details">
+                                <h4>Cleaning Service</h4>
+                                <p>Deep cleaning solutions for homes, offices, and commercial spaces.</p>
+                                <div class="service-tags">
+                                    <span class="tag">Cleaning</span>
+                                    <span class="tag">Maintenance</span>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Service 7 -->
+                        <a href="{{ url_for('view_service', service_name='Furniture Rental Service') }}" class="service-card" style="text-decoration: none; color: inherit; cursor: pointer; display: block;">
+                            <div class="service-icon-area" style="background: linear-gradient(135deg, #a0522d, #cd853f);">
+                                <i class="fa-solid fa-couch fa-3x" style="color: #ffccaa;"></i>
+                            </div>
+                            <div class="service-details">
+                                <h4>Furniture Rental Service</h4>
+                                <p>High-quality furniture rentals for homes, offices, and events.</p>
+                                <div class="service-tags">
+                                    <span class="tag">Rental</span>
+                                    <span class="tag">Furniture</span>
+                                </div>
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -167,8 +213,16 @@
             <button class="modal-close" onclick="toggleProfile()" id="close-profile-modal">&times;</button>
             <h3>Personal Details</h3>
 
-            {% if user_info %}
             <div class="profile-details">
+                <div class="profile-header" style="text-align: center; margin-bottom: 20px;">
+                    {% if user_info.profile_pic %}
+                        <div class="profile-avatar" style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; margin: 0 auto 10px; border: 3px solid var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                            <img src="{{ url_for('static', filename=user_info.profile_pic.replace('static/', '')) }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                    {% else %}
+                        <div class="profile-avatar" style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--primary)); display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: bold; color: white; margin: 0 auto 10px;">{{ user_info.username[0] | upper }}</div>
+                    {% endif %}
+                </div>
                 <div class="profile-row">
                     <span class="label">Username</span>
                     <span class="value">{{ user_info.username }}</span>
@@ -190,7 +244,6 @@
             <button class="btn btn-primary btn-block" onclick="toggleProfile(); toggleEditProfile();" id="edit-profile-btn">
                 <i class="fa-solid fa-pen-to-square"></i> Edit Profile
             </button>
-            {% endif %}
         </div>
     </div>
 
@@ -201,7 +254,12 @@
             <h3>Update Profile</h3>
 
             {% if user_info %}
-            <form action="{{ url_for('update_user') }}" method="POST" class="modal-form">
+            <form action="{{ url_for('update_user') }}" method="POST" class="modal-form" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group">
+                    <label>Profile Picture</label>
+                    <input type="file" name="profile_pic" accept="image/*" class="form-control" style="padding: 8px;">
+                </div>
                 <div class="form-group">
                     <label>Username</label>
                     <input type="text" name="username" value="{{ user_info.username }}" required>
@@ -230,6 +288,33 @@
         </div>
     </div>
 
+    <!-- Appliance Service Modal -->
+    <div class="modal-overlay" id="applianceModal">
+        <div class="modal" style="max-width: 400px;">
+            <button class="modal-close" onclick="toggleApplianceModal()" id="close-appliance-modal">&times;</button>
+            <h3><i class="fa-solid fa-screwdriver-wrench"></i> Choose Appliance Service</h3>
+            
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+                <a href="{{ url_for('view_service', service_name='Appliance Service: AC Repair') }}" style="display: flex; align-items: center; padding: 15px; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--text); font-weight: 500; transition: all 0.2s ease; background: var(--card-bg);" onmouseover="this.style.borderColor='var(--primary)';" onmouseout="this.style.borderColor='var(--border)';">
+                    <i class="fa-solid fa-wind fa-fw" style="color: #3498db; margin-right: 15px; font-size: 1.2rem;"></i> 
+                    <span>AC Repair</span>
+                </a>
+                <a href="{{ url_for('view_service', service_name='Appliance Service: Washing Machine Repair') }}" style="display: flex; align-items: center; padding: 15px; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--text); font-weight: 500; transition: all 0.2s ease; background: var(--card-bg);" onmouseover="this.style.borderColor='var(--primary)';" onmouseout="this.style.borderColor='var(--border)';">
+                    <i class="fa-solid fa-shirt fa-fw" style="color: #2ecc71; margin-right: 15px; font-size: 1.2rem;"></i> 
+                    <span>Washing Machine Repair</span>
+                </a>
+                <a href="{{ url_for('view_service', service_name='Appliance Service: Refrigerator Repair') }}" style="display: flex; align-items: center; padding: 15px; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--text); font-weight: 500; transition: all 0.2s ease; background: var(--card-bg);" onmouseover="this.style.borderColor='var(--primary)';" onmouseout="this.style.borderColor='var(--border)';">
+                    <i class="fa-solid fa-snowflake fa-fw" style="color: #9b59b6; margin-right: 15px; font-size: 1.2rem;"></i> 
+                    <span>Refrigerator Repair</span>
+                </a>
+                <a href="{{ url_for('view_service', service_name='Appliance Service: TV Repair') }}" style="display: flex; align-items: center; padding: 15px; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--text); font-weight: 500; transition: all 0.2s ease; background: var(--card-bg);" onmouseover="this.style.borderColor='var(--primary)';" onmouseout="this.style.borderColor='var(--border)';">
+                    <i class="fa-solid fa-tv fa-fw" style="color: #e74c3c; margin-right: 15px; font-size: 1.2rem;"></i> 
+                    <span>TV Repair</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- Deposit Modal -->
     <div class="modal-overlay" id="depositModal">
         <div class="modal" style="max-width: 500px;">
@@ -238,15 +323,16 @@
             
             <div class="info-list" style="margin-top: 15px;">
                 <div class="info-row" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
-                    <span class="info-label" style="font-weight: 600;">Current Balance</span>
+                    <span class="info-label" style="font-weight: 600;">Advance Deposit Balance</span>
                     <span class="info-value {{ 'text-success' if (user_info.deposit_balance or 0) >= 2000 else 'text-danger' }}" style="font-weight: 600; font-size: 1.2rem;">₹{{ user_info.deposit_balance or 0.0 }}</span>
                 </div>
                 {% if pending_withdrawals > 0 %}
                 <div class="info-row" style="display: flex; justify-content: space-between; align-items: center; padding: 0 0 15px 0;">
-                    <span class="info-label" style="font-size: 0.9rem; color: var(--text-muted);">Pending Withdrawal</span>
+                    <span class="info-label" style="font-size: 0.9rem; color: var(--text-muted);">Pending Advance Withdrawal</span>
                     <span class="info-value text-danger" style="font-size: 0.95rem; font-weight: 500;">₹{{ pending_withdrawals }} (Awaiting Admin Approval)</span>
                 </div>
                 {% endif %}
+
                 <div style="border-bottom: 2px solid #eee; margin-bottom: 15px;"></div>
                 
                 <div style="display: flex; flex-direction: column; gap: 20px;">
@@ -254,6 +340,7 @@
                     <div>
                         <span class="info-label" style="display: block; margin-bottom: 10px; font-size: 0.85rem; color: #666;">Add Funds</span>
                         <form action="{{ url_for('user_add_deposit') }}" method="POST" style="margin: 0; display: flex; gap: 10px;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="number" name="amount" min="1" step="0.01" required placeholder="Amount to deposit" class="form-control" style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background-color: var(--card-bg); color: var(--text);">
                             <button type="submit" class="btn btn-success"><i class="fa-solid fa-plus"></i> Deposit</button>
                         </form>
@@ -261,19 +348,142 @@
                     
                     <!-- Withdraw Section -->
                     <div>
-                        <span class="info-label" style="display: block; margin-bottom: 10px; font-size: 0.85rem; color: #666;">Withdraw Funds</span>
+                        <span class="info-label" style="display: block; margin-bottom: 10px; font-size: 0.85rem; color: #666;">Withdraw Advance Deposit</span>
                         <form action="{{ url_for('user_withdraw_deposit') }}" method="POST" style="margin: 0; display: flex; gap: 10px;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="number" name="amount" min="1" step="1" max="{{ user_info.deposit_balance or 0 }}" required placeholder="Amount to withdraw" class="form-control" style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background-color: var(--card-bg); color: var(--text);">
                             <button type="submit" class="btn btn-danger" {% if (user_info.deposit_balance or 0) == 0 %}disabled{% endif %}><i class="fa-solid fa-minus"></i> Withdraw</button>
                         </form>
                     </div>
+
+
+
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Withdraw Balance (UPI) Modal -->
+    <div class="modal-overlay" id="withdrawBalanceModal">
+        <div class="modal" style="max-width: 450px;">
+            <button class="modal-close" onclick="toggleWithdrawBalance()" id="close-withdraw-balance-modal">&times;</button>
+            <h3><i class="fa-solid fa-mobile-screen-button"></i> Withdraw Balance (UPI)</h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">Transfer your earnings/refunds to your bank via UPI.</p>
+            
+            <div class="info-list" style="margin-bottom: 20px;">
+                <div class="info-row" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                    <span class="label">Available Balance</span>
+                    <span class="value" style="font-weight: 700; color: var(--success);">₹{{ user_info.balance or 0 }}</span>
+                </div>
+            </div>
+
+            <form action="{{ url_for('withdraw') }}" method="POST" class="modal-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group">
+                    <label>UPI ID</label>
+                    <input type="text" name="upi" placeholder="example@upi" required pattern="^[\w.-]+@[\w.-]+$">
+                </div>
+                <div class="form-group">
+                    <label>Amount to Withdraw</label>
+                    <input type="number" name="amount" min="1" max="{{ user_info.balance or 0 }}" required placeholder="Amount in ₹">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" {% if (user_info.balance or 0) <= 0 %}disabled{% endif %}>
+                    <i class="fa-solid fa-paper-plane"></i> Submit Request
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Rating Modal -->
+
+    <div class="modal-overlay" id="ratingModal">
+        <div class="modal" style="max-width: 450px;">
+            <button class="modal-close" onclick="toggleRatingModal()" id="close-rating-modal">&times;</button>
+            <h3>Rate Professional</h3>
+            <p id="rating-professional-name" style="color: var(--text-muted); margin-bottom: 20px;"></p>
+            
+            <form id="ratingForm" method="POST" class="modal-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group" style="text-align: center;">
+                    <label style="display: block; margin-bottom: 15px;">How was your experience?</label>
+                    <div class="star-rating" style="display: flex; justify-content: center; gap: 10px; font-size: 2rem;">
+                        <input type="radio" name="rating" value="5" id="star5" style="display: none;"><label for="star5" style="cursor: pointer;" onclick="setRating(5)">⭐</label>
+                        <input type="radio" name="rating" value="4" id="star4" style="display: none;"><label for="star4" style="cursor: pointer;" onclick="setRating(4)">⭐</label>
+                        <input type="radio" name="rating" value="3" id="star3" style="display: none;"><label for="star3" style="cursor: pointer;" onclick="setRating(3)">⭐</label>
+                        <input type="radio" name="rating" value="2" id="star2" style="display: none;"><label for="star2" style="cursor: pointer;" onclick="setRating(2)">⭐</label>
+                        <input type="radio" name="rating" value="1" id="star1" style="display: none;"><label for="star1" style="cursor: pointer;" onclick="setRating(1)">⭐</label>
+                    </div>
+                    <p id="rating-value-display" style="margin-top: 10px; font-weight: 600; color: var(--accent);">Select stars</p>
+                </div>
+                <div class="form-group">
+                    <label>Review (Optional)</label>
+                    <textarea name="review" rows="3" placeholder="Write a short review..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-success btn-block">
+                    Submit Feedback
+                </button>
+            </form>
+        </div>
+    </div>
+
     <script>
+        function openRatingModal(reqId, empName) {
+            const modal = document.getElementById('ratingModal');
+            const form = document.getElementById('ratingForm');
+            const nameDisp = document.getElementById('rating-professional-name');
+            
+            form.action = `/submit_rating/${reqId}`;
+            nameDisp.innerText = `Professional: ${empName}`;
+            modal.classList.add('active');
+            
+            // Reset rating
+            setRating(0);
+        }
+
+        function toggleRatingModal() {
+            document.getElementById('ratingModal').classList.toggle('active');
+        }
+
+        function setRating(val) {
+            const labels = document.querySelectorAll('.star-rating label');
+            const display = document.getElementById('rating-value-display');
+            
+            if (val === 0) {
+                labels.forEach(l => l.style.opacity = '0.3');
+                display.innerText = 'Select stars';
+                return;
+            }
+
+            labels.forEach((l, index) => {
+                // Since they are in order 5, 4, 3, 2, 1 in HTML for some systems, 
+                // but here I just want to highlight the first 'val' ones.
+                // Actually my HTML has them 5 to 1. Let's fix logic or HTML.
+                // Let's just use simple logic based on value.
+            });
+            
+            // Simpler: highlight based on radio value
+            const radios = document.querySelectorAll('input[name="rating"]');
+            radios.forEach(r => {
+                if (r.value == val) r.checked = true;
+            });
+            
+            // Visual feedback
+            labels.forEach(l => {
+                const rId = l.getAttribute('for');
+                const rVal = document.getElementById(rId).value;
+                l.style.opacity = rVal <= val ? '1' : '0.3';
+            });
+            
+            display.innerText = `${val} Star${val > 1 ? 's' : ''}`;
+        }
+
+        function toggleWithdrawBalance() {
+            const modal = document.getElementById('withdrawBalanceModal');
+            modal.classList.toggle('active');
+        }
+
         function toggleProfile() {
+
             const modal = document.getElementById('profileModal');
             modal.classList.toggle('active');
         }
@@ -285,6 +495,11 @@
 
         function toggleDeposit() {
             const modal = document.getElementById('depositModal');
+            modal.classList.toggle('active');
+        }
+
+        function toggleApplianceModal() {
+            const modal = document.getElementById('applianceModal');
             modal.classList.toggle('active');
         }
 
@@ -311,5 +526,4 @@
     </script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
-
 </html>

@@ -14,7 +14,7 @@ def drop_unique():
         gmail TEXT,
         work_details TEXT,
         account_status TEXT DEFAULT 'approved',
-        availability TEXT DEFAULT 'Not specified',
+        availability TEXT DEFAULT 'NOT SPECIFIED',
         is_online INTEGER DEFAULT 0
     )
     """)
