@@ -23,6 +23,9 @@
             <a href="#" onclick="toggleDeposit(); return false;" class="btn-nav-logout" style="background: rgba(0, 206, 201, 0.15); color: var(--accent); border-color: rgba(0, 206, 201, 0.2); margin-right: 15px;">
                 <i class="fa-solid fa-wallet"></i> Deposit
             </a>
+            <a href="#" onclick="toggleBookingsModal(); return false;" class="btn-nav-profile" style="background: rgba(255, 159, 67, 0.15); color: #ff9f43; border-color: rgba(255, 159, 67, 0.2); margin-right: 15px;">
+                <i class="fa-solid fa-calendar-check"></i> My Bookings
+            </a>
             <div class="nav-user-info" onclick="toggleProfile()" style="cursor: pointer;" id="profile-btn">
                     <div class="nav-avatar">{{ session.get('username', 'U')[0] }}</div>
                 <span class="nav-username">{{ session.get('username') }}</span>
@@ -408,7 +411,49 @@
         </div>
     </div>
 
+    <!-- Bookings Modal -->
+    <div class="modal-overlay" id="bookingsModal">
+        <div class="modal" style="max-width: 600px;">
+            <button class="modal-close" onclick="toggleBookingsModal()">&times;</button>
+            <h3><i class="fa-solid fa-calendar-check"></i> My Bookings</h3>
+            <div class="modal-body" style="max-height: 400px; overflow-y: auto; margin-top: 20px;">
+                {% if bookings %}
+                <div class="requests-list" style="display: flex; flex-direction: column; gap: 15px;">
+                    {% for req in bookings %}
+                    <div class="request-card" style="padding: 15px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="font-weight: bold; color: var(--accent);">Request #{{ req.id }}</span>
+                            <span class="status-badge 
+                                {% if req.status == 'Completed' %}badge-approved
+                                {% elif req.status == 'Accepted' %}badge-pending
+                                {% else %}badge-blocked{% endif %}" style="font-size: 0.8rem; padding: 4px 8px; border-radius: 12px; background: rgba(0, 206, 201, 0.15); color: var(--success);">
+                                {{ req.status }}
+                            </span>
+                        </div>
+                        <p style="margin: 5px 0; color: var(--text);"><strong>Professional:</strong> {{ req.employee_name }} ({{ req.employee_gmail }})</p>
+                        {% if req.status == 'Completed' and not req.rating %}
+                        <button onclick="toggleBookingsModal(); openRatingModal('{{ req.id }}', '{{ req.employee_name }}')" class="btn btn-primary btn-sm" style="margin-top: 10px;">Leave Rating</button>
+                        {% elif req.rating %}
+                        <p style="margin: 5px 0; color: #feca57;"><strong>You Rated:</strong> {{ req.rating }} ⭐</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📅</div>
+                    <p>No bookings found.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
     <script>
+        function toggleBookingsModal() {
+            const modal = document.getElementById('bookingsModal');
+            modal.classList.toggle('active');
+        }
         function openRatingModal(reqId, empName) {
             const modal = document.getElementById('ratingModal');
             const form = document.getElementById('ratingForm');

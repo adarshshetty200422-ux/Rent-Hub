@@ -235,7 +235,12 @@ def register_user():
                     flash(f'Gmail ID "{gmail}" is already registered.', 'error')
                 return redirect(url_for('user'))
 
-            conn.commit()
+            hashed_pw = generate_password_hash(password)
+            cursor = conn.execute(
+                'INSERT INTO users (username, password, role, gmail, account_status) VALUES (?, ?, ?, ?, ?)',
+                (username, hashed_pw, 'user', gmail, 'approved')
+            )
+            user_id = cursor.lastrowid
 
             conn.execute("UPDATE users SET is_online = 1 WHERE id = ?", (user_id,))
             conn.commit()
@@ -958,7 +963,13 @@ def admin_employee_details(emp_id):
         ).fetchone()
         work_done_month = work_done_row['count'] if work_done_row else 0
         
-    return render_template('admin_employee_details.html', employee=employee, withdrawals=withdrawals, work_done_month=work_done_month)
+        requests_accepted_row = conn.execute(
+            "SELECT COUNT(*) as count FROM service_requests WHERE employee_id = ? AND status IN ('Accepted', 'Completed') AND strftime('%Y-%m', created_at) = ?",
+            (emp_id, current_month)
+        ).fetchone()
+        requests_accepted_month = requests_accepted_row['count'] if requests_accepted_row else 0
+        
+    return render_template('admin_employee_details.html', employee=employee, withdrawals=withdrawals, work_done_month=work_done_month, requests_accepted_month=requests_accepted_month)
 
 
 @app.route('/admin_warn_employee/<int:emp_id>', methods=['POST'])

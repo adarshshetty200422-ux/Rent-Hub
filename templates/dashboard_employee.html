@@ -112,37 +112,69 @@
             <!-- Right: Requests & Messages -->
             <div>
 
+            </div>
+        </div>
+        {% endif %}
+    </div>
 
-                <!-- Messages -->
+    <!-- Message History Modal -->
+    <div class="modal-overlay" id="messageHistoryModal">
+        <div class="modal">
+            <button class="modal-close" onclick="toggleMessageHistory()">&times;</button>
+            <h3><i class="fa-solid fa-envelope"></i> Message History</h3>
+            <div class="modal-body" style="max-height: 400px; overflow-y: auto; margin-top: 20px;">
                 {% if emp_messages %}
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <span class="icon">⚠️</span> Messages
-                        </div>
-                        <span class="badge badge-pending">{{ emp_messages|length }}</span>
+                <div class="messages-list">
+                    {% for msg in emp_messages %}
+                    <div class="message-item" style="padding: 15px; border-bottom: 1px solid var(--border); margin-bottom: 10px; background: var(--card-bg); border-radius: 8px;">
+                        <p style="margin: 0; color: var(--text);">{{ msg.message }}</p>
                     </div>
-                    <div class="card-body">
-                        <div class="messages-list">
-                            {% for msg in emp_messages %}
-                            <div class="message-item">{{ msg.message }}</div>
-                            {% endfor %}
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
                 {% else %}
-                <div class="card">
-                    <div class="card-body">
-                        <div class="empty-state">
-                            <div class="empty-icon">📭</div>
-                            <p>No messages yet. You're all caught up!</p>
-                        </div>
-                    </div>
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <p>No messages yet. You're all caught up!</p>
                 </div>
                 {% endif %}
             </div>
         </div>
-        {% endif %}
+    </div>
+
+    <!-- Work History Modal -->
+    <div class="modal-overlay" id="workHistoryModal">
+        <div class="modal" style="max-width: 600px;">
+            <button class="modal-close" onclick="toggleWorkHistory()">&times;</button>
+            <h3><i class="fa-solid fa-briefcase"></i> Work History</h3>
+            <div class="modal-body" style="max-height: 400px; overflow-y: auto; margin-top: 20px;">
+                {% if service_requests %}
+                <div class="requests-list" style="display: flex; flex-direction: column; gap: 15px;">
+                    {% for req in service_requests %}
+                    <div class="request-card" style="padding: 15px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="font-weight: bold; color: var(--accent);">Request #{{ req.id }}</span>
+                            <span class="status-badge 
+                                {% if req.status == 'Completed' %}badge-approved
+                                {% elif req.status == 'Accepted' %}badge-pending
+                                {% else %}badge-blocked{% endif %}" style="font-size: 0.8rem; padding: 4px 8px; border-radius: 12px; background: rgba(0, 206, 201, 0.15); color: var(--success);">
+                                {{ req.status }}
+                            </span>
+                        </div>
+                        <p style="margin: 5px 0; color: var(--text);"><strong>Client:</strong> {{ req.user_name }} ({{ req.user_gmail }})</p>
+                        {% if req.rating %}
+                        <p style="margin: 5px 0; color: #feca57;"><strong>Rating:</strong> {{ req.rating }} ⭐</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">🛠️</div>
+                    <p>No work history found.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
 
     <!-- Profile Modal -->
