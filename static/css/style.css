@@ -739,9 +739,9 @@ body.dashboard-body {
 /* Dashboard Content */
 .dashboard-content {
     flex: 1;
-    max-width: 1280px;
+    max-width: 1600px;
     margin: 0 auto;
-    padding: 32px 32px 60px;
+    padding: 20px 24px 40px;
     width: 100%;
     position: relative;
     z-index: 1;
@@ -1232,8 +1232,8 @@ body.dashboard-body {
    =========================== */
 .services-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
 }
 
 .service-card {
@@ -1251,7 +1251,7 @@ body.dashboard-body {
 }
 
 .service-icon-area {
-    height: 140px;
+    height: 90px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1261,31 +1261,32 @@ body.dashboard-body {
 .service-icon-area i {
     position: relative;
     z-index: 1;
+    font-size: 2.2rem !important;
     filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
 }
 
 .service-details {
-    padding: 20px;
+    padding: 16px;
 }
 
 .service-details h4 {
-    font-size: 21px;
+    font-size: 19px;
     font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .service-details p {
-    font-size: 16px;
+    font-size: 14px;
     color: var(--text-muted);
-    line-height: 1.6;
-    margin-bottom: 14px;
+    line-height: 1.5;
+    margin-bottom: 10px;
 }
 
 .service-tags {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
 }
 
 .tag {
@@ -1389,9 +1390,9 @@ body.dashboard-body {
    Details Page (Admin view user/employee)
    =========================== */
 .details-page {
-    max-width: 900px;
+    max-width: 1600px;
     margin: 0 auto;
-    padding: 32px;
+    padding: 24px;
     position: relative;
     z-index: 1;
 }
@@ -1573,8 +1574,8 @@ body.dashboard-body {
    Details Page
    =========================== */
 .details-page {
-    padding: 20px 32px 60px;
-    max-width: 1000px;
+    padding: 20px 24px 40px;
+    max-width: 1600px;
     margin: 0 auto;
     width: 100%;
     flex: 1;

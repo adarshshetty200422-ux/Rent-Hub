@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from functools import wraps
 import sqlite3
 import random
@@ -33,22 +33,9 @@ app.config.update(
     SESSION_COOKIE_SAMESITE='Lax',
 )
 
-# Configuration for profile pictures
-UPLOAD_FOLDER = 'static/profile_pics'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def save_profile_pic(file, user_id):
-    if file and allowed_file(file.filename):
-        filename = secure_filename(f"user_{user_id}_{file.filename}")
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(os.path.join(app.root_path, file_path))
-        return file_path
-    return None
+
 # (Session cookie settings already applied above via app.config.update)
 
 # CSRF Protection
@@ -248,22 +235,6 @@ def register_user():
                     flash(f'Gmail ID "{gmail}" is already registered.', 'error')
                 return redirect(url_for('user'))
 
-            # Handle Profile Picture
-            profile_pic = request.files.get('profile_pic')
-            profile_pic_path = None
-
-            hashed_password = generate_password_hash(password)
-            cursor = conn.execute(
-                'INSERT INTO users (username, password, role, gmail) VALUES (?, ?, ?, ?)',
-                (username, hashed_password, 'user', gmail)
-            )
-            user_id = cursor.lastrowid
-            
-            if profile_pic:
-                profile_pic_path = save_profile_pic(profile_pic, user_id)
-                if profile_pic_path:
-                    conn.execute("UPDATE users SET profile_pic = ? WHERE id = ?", (profile_pic_path, user_id))
-            
             conn.commit()
 
             conn.execute("UPDATE users SET is_online = 1 WHERE id = ?", (user_id,))
@@ -316,13 +287,6 @@ def register_employee():
             )
             user_id = cursor.lastrowid
 
-            # Handle Profile Picture
-            profile_pic = request.files.get('profile_pic')
-            if profile_pic:
-                profile_pic_path = save_profile_pic(profile_pic, user_id)
-                if profile_pic_path:
-                    conn.execute("UPDATE users SET profile_pic = ? WHERE id = ?", (profile_pic_path, user_id))
-            
             conn.commit()
 
             flash('Registration successful! Please wait for approval.', 'success')
@@ -337,7 +301,7 @@ def employee():
     return process_login(request, 'employee', 'employee_login.html', 'dashboard_employee')
 
 
-@app.route('/logout', methods=['POST'])
+@app.route('/logout', methods=['GET', 'POST'])
 def logout():
     user_id = session.get('user_id')
     if user_id:
@@ -461,6 +425,42 @@ def user_employee_details(emp_id):
             return redirect(url_for('dashboard_user'))
     return render_template('user_employee_details.html', employee=employee)
 
+@app.route('/rate_profile/<int:emp_id>', methods=['POST'])
+@login_required('user')
+def rate_profile(emp_id):
+    data = request.get_json()
+    if not data or 'rating' not in data:
+        return jsonify({"error": "No rating provided"}), 400
+        
+    try:
+        rating_val = int(data['rating'])
+        if rating_val < 1 or rating_val > 5:
+            raise ValueError
+    except ValueError:
+        return jsonify({"error": "Invalid rating value"}), 400
+
+    with get_db_connection() as conn:
+        emp = conn.execute("SELECT rating, rating_count FROM users WHERE id = ? AND role = 'employee'", (emp_id,)).fetchone()
+        if not emp:
+            return jsonify({"error": "Professional not found"}), 404
+            
+        curr_rating = emp['rating'] or 0.0
+        curr_count = emp['rating_count'] or 0
+        
+        new_count = curr_count + 1
+        new_rating = ((curr_rating * curr_count) + rating_val) / new_count
+        
+        conn.execute(
+            "UPDATE users SET rating = ?, rating_count = ? WHERE id = ?",
+            (new_rating, new_count, emp_id)
+        )
+        conn.commit()
+        
+    return jsonify({
+        "message": "Rating saved",
+        "average": new_rating
+    })
+
 
 @app.route('/user_add_deposit', methods=['POST'])
 @login_required('user')
@@ -527,17 +527,15 @@ def user_withdraw_deposit():
         )
         bank_details = ""
         if confirmed == 'true':
-            bank_name = request.form.get('bank_name', '')
-            branch_name = request.form.get('branch_name', '')
             account_name = request.form.get('account_name', '')
             acc_number = request.form.get('account_number', '')
             ifsc = request.form.get('ifsc_code', '')
-            bank_details = f"Bank: {bank_name}, Branch: {branch_name}, Name: {account_name}, A/C: {acc_number}, IFSC: {ifsc}"
+            bank_details = f"Name: {account_name}, A/C: {acc_number}, IFSC: {ifsc}"
 
             if account_name and acc_number and ifsc:
                 conn.execute(
-                    "UPDATE users SET bank_name = ?, bank_branch = ?, bank_account_name = ?, bank_account_number = ?, bank_ifsc = ? WHERE id = ?",
-                    (bank_name, branch_name, account_name, acc_number, ifsc, user_id)
+                    "UPDATE users SET bank_account_name = ?, bank_account_number = ?, bank_ifsc = ? WHERE id = ?",
+                    (account_name, acc_number, ifsc, user_id)
                 )
 
         conn.execute(
@@ -583,6 +581,14 @@ def dashboard_user():
         except sqlite3.OperationalError:
             pending_total = 0.0
 
+        try:
+            transactions = conn.execute(
+                "SELECT amount, status, requested_at, bank_details FROM withdrawal_requests WHERE user_id = ? ORDER BY id DESC",
+                (user_id,)
+            ).fetchall()
+        except sqlite3.OperationalError:
+            transactions = []
+            
         # Fetch user's service bookings
         try:
             bookings = conn.execute(
@@ -599,9 +605,9 @@ def dashboard_user():
 
     return render_template('dashboard_user.html',
                            user_info=user_info,
-                           user_messages=user_messages,
                            pending_withdrawals=pending_total,
-                           bookings=bookings)
+                           bookings=bookings,
+                           transactions=transactions)
 
 
 @app.route('/dashboard_employee')
@@ -636,18 +642,25 @@ def dashboard_employee():
                 ).fetchone()
                 pending_total = pending_withdrawals['pending_total'] if pending_withdrawals and pending_withdrawals['pending_total'] else 0.0
                 
+                transactions = conn.execute(
+                    "SELECT amount, status, requested_at, bank_details FROM withdrawal_requests WHERE user_id = ? ORDER BY id DESC",
+                    (user_id,)
+                ).fetchall()
+                
             except sqlite3.OperationalError:
                 emp_messages = []
                 service_requests = []
                 pending_total = 0.0
+                transactions = []
         else:
             pending_total = 0.0
+            transactions = []
 
     return render_template('dashboard_employee.html',
                            employee=employee,
-                           emp_messages=emp_messages,
                            service_requests=service_requests,
-                           pending_withdrawals=pending_total)
+                           pending_withdrawals=pending_total,
+                           transactions=transactions)
 
 
 @app.route('/update_employee', methods=['POST'])
@@ -662,9 +675,7 @@ def update_employee():
     new_work_list = request.form.getlist('work_details')
     new_work = ", ".join(new_work_list) if new_work_list else ""
     
-    # Handle Profile Picture
-    profile_pic = request.files.get('profile_pic')
-    profile_pic_path = save_profile_pic(profile_pic, user_id)
+
 
     if not new_username or not new_phone:
         flash('Please fill out all required fields.', 'error')
@@ -688,9 +699,7 @@ def update_employee():
             updates.append("password = ?")
             params.append(generate_password_hash(new_password))
             
-        if profile_pic_path:
-            updates.append("profile_pic = ?")
-            params.append(profile_pic_path)
+
             
         params.append(user_id)
         conn.execute(f"UPDATE users SET {', '.join(updates)} WHERE id = ?", params)
@@ -734,9 +743,7 @@ def update_admin():
     new_work_list = request.form.getlist('work_details')
     new_work = ", ".join(new_work_list) if new_work_list else ""
     
-    # Handle Profile Picture
-    profile_pic = request.files.get('profile_pic')
-    profile_pic_path = save_profile_pic(profile_pic, user_id)
+
 
     if not new_username:
         flash('Username is required.', 'error')
@@ -756,9 +763,7 @@ def update_admin():
         if new_work:
             updates.append("work_details = ?")
             params.append(new_work)
-        if profile_pic_path:
-            updates.append("profile_pic = ?")
-            params.append(profile_pic_path)
+
             
         params.append(user_id)
         conn.execute(f"UPDATE users SET {', '.join(updates)} WHERE id = ?", params)
@@ -779,9 +784,7 @@ def update_user():
     if new_phone:
         new_phone = new_phone.strip().lower()
         
-    # Handle Profile Picture
-    profile_pic = request.files.get('profile_pic')
-    profile_pic_path = save_profile_pic(profile_pic, user_id)
+
 
     if not new_username:
         flash('Username is required.', 'error')
@@ -811,9 +814,7 @@ def update_user():
         if new_password:
             updates.append("password = ?")
             params.append(generate_password_hash(new_password))
-        if profile_pic_path:
-            updates.append("profile_pic = ?")
-            params.append(profile_pic_path)
+
             
         params.append(user_id)
         conn.execute(f"UPDATE users SET {', '.join(updates)} WHERE id = ?", params)
@@ -949,7 +950,15 @@ def admin_employee_details(emp_id):
             (emp_id,)
         ).fetchall()
         
-    return render_template('admin_employee_details.html', employee=employee, withdrawals=withdrawals)
+        import datetime
+        current_month = datetime.datetime.now().strftime('%Y-%m')
+        work_done_row = conn.execute(
+            "SELECT COUNT(*) as count FROM service_requests WHERE employee_id = ? AND status = 'Completed' AND strftime('%Y-%m', created_at) = ?",
+            (emp_id, current_month)
+        ).fetchone()
+        work_done_month = work_done_row['count'] if work_done_row else 0
+        
+    return render_template('admin_employee_details.html', employee=employee, withdrawals=withdrawals, work_done_month=work_done_month)
 
 
 @app.route('/admin_warn_employee/<int:emp_id>', methods=['POST'])
@@ -1289,17 +1298,15 @@ def withdraw_deposit():
         )
         bank_details = ""
         if confirmed == 'true':
-            bank_name = request.form.get('bank_name', '')
-            branch_name = request.form.get('branch_name', '')
             account_name = request.form.get('account_name', '')
             acc_number = request.form.get('account_number', '')
             ifsc = request.form.get('ifsc_code', '')
-            bank_details = f"Bank: {bank_name}, Branch: {branch_name}, Name: {account_name}, A/C: {acc_number}, IFSC: {ifsc}"
+            bank_details = f"Name: {account_name}, A/C: {acc_number}, IFSC: {ifsc}"
 
             if account_name and acc_number and ifsc:
                 conn.execute(
-                    "UPDATE users SET bank_name = ?, bank_branch = ?, bank_account_name = ?, bank_account_number = ?, bank_ifsc = ? WHERE id = ?",
-                    (bank_name, branch_name, account_name, acc_number, ifsc, employee_id)
+                    "UPDATE users SET bank_account_name = ?, bank_account_number = ?, bank_ifsc = ? WHERE id = ?",
+                    (account_name, acc_number, ifsc, employee_id)
                 )
 
         conn.execute(

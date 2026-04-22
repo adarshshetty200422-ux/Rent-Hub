@@ -9,260 +9,254 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #1f1c2c 0%, #928DAB 100%);
+            background: #141b25;
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
             margin: 0;
             color: #fff;
         }
         .container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 40px;
-            border-radius: 24px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
             width: 100%;
             max-width: 450px;
-            text-align: center;
+            padding: 0;
             animation: slideUp 0.5s ease-out;
         }
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        h2 {
-            margin-top: 0;
-            font-weight: 700;
-            margin-bottom: 5px;
-            font-size: 1.8rem;
-        }
-        p {
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 25px;
-            font-size: 0.95rem;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .input-group {
-            position: relative;
-            text-align: left;
-        }
-        input {
-            width: 100%;
-            padding: 14px 14px 14px 45px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            background: rgba(0, 0, 0, 0.2);
-            color: #fff;
-            font-size: 1rem;
-            box-sizing: border-box;
-            outline: none;
-            transition: all 0.3s;
-        }
-        input:focus {
-            background: rgba(0, 0, 0, 0.4);
-            border-color: #00cec9;
-            box-shadow: 0 0 0 3px rgba(0, 206, 201, 0.2);
-        }
-        input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-        .input-group i {
-            position: absolute;
-            top: 50%;
-            left: 15px;
-            transform: translateY(-50%);
-            color: rgba(255, 255, 255, 0.6);
-        }
-        .amount-display {
-            background: rgba(0, 206, 201, 0.1);
-            border: 1px solid rgba(0, 206, 201, 0.3);
-            border-radius: 12px;
+        .header {
+            background: #1c2635;
             padding: 15px;
-            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #2c394b;
+        }
+        .header .info-icon {
+            background: #2a8bf2;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            margin-right: 10px;
+        }
+        .header-text {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        
+        .section {
+            background: #1a222e;
+            margin-top: 10px;
+        }
+        .section-header {
+            padding: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #2c394b;
+            cursor: pointer;
         }
-        .amount-display span {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.8);
-        }
-        .amount-display strong {
-            font-size: 1.5rem;
-            color: #00cec9;
-        }
-        button {
-            background: #00cec9;
-            color: #1a1a1a;
-            border: none;
-            padding: 16px;
-            border-radius: 12px;
-            font-size: 1.1rem;
+        .section-header .title {
+            color: #f3ba2f;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 10px;
+            font-size: 0.95rem;
             display: flex;
-            justify-content: center;
             align-items: center;
-            gap: 10px;
         }
-        button:hover {
-            background: #00e5e0;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 206, 201, 0.3);
+        .section-header .step-num {
+            margin-right: 10px;
         }
-        .btn-cancel {
-            background: transparent;
-            color: rgba(255, 255, 255, 0.7);
-            padding: 10px;
-            font-size: 0.9rem;
-            margin-top: 5px;
+        .section-header .chevron {
+            color: #00e676;
+            font-size: 0.8rem;
         }
-        .btn-cancel:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            box-shadow: none;
-            transform: none;
+        
+        .section-content {
+            padding: 20px 15px;
         }
+        
         .bank-card {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            border-radius: 16px;
+            background: linear-gradient(135deg, #5fb4ef 0%, #3a91e5 100%);
+            border-radius: 12px;
             padding: 20px;
-            text-align: left;
-            margin-bottom: 20px;
             position: relative;
-            cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            border: 2px solid #00e676; /* Initially selected */
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             transition: all 0.3s;
+            cursor: pointer;
+        }
+        .bank-card.hidden {
+            display: none;
         }
         .card-circle {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             background-color: #00e676;
             margin-bottom: 15px;
         }
         .card-detail {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
         .card-detail:last-child {
             margin-bottom: 0;
         }
         .card-detail .label {
             font-size: 0.75rem;
-            color: rgba(255,255,255,0.8);
-            margin-bottom: 3px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 4px;
         }
         .card-detail .value {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             color: #fff;
-            word-break: break-all;
+            letter-spacing: 0.5px;
         }
-        .add-new-text {
+        
+        .add-new-btn {
             color: #00e676;
-            font-weight: 600;
-            margin-bottom: 15px;
-            cursor: pointer;
             text-align: center;
+            font-weight: 600;
+            margin-bottom: 20px;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            color: #f3ba2f;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .form-group input {
+            width: 100%;
+            background: #1e2732;
+            border: 1px solid #2c394b;
+            border-radius: 8px;
+            padding: 14px;
+            color: #fff;
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus {
+            border-color: #00e676;
+        }
+        .hidden {
+            display: none;
+        }
+        
+        .btn-continue {
+            background: #00e676;
+            color: #141b25;
+            width: 100%;
+            border: none;
+            padding: 16px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        .btn-continue:hover {
+            background: #00c853;
+            transform: translateY(-2px);
+        }
+        .btn-cancel {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.5);
+            width: 100%;
+            border: none;
+            padding: 15px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Secure Withdrawal</h2>
-    <p>Provide your bank account details for transfer</p>
-    
-    <div class="amount-display">
-        <span>Amount to Withdraw</span>
-        <strong>₹{{ amount }}</strong>
+    <div class="header">
+        <div class="info-icon">i</div>
+        <div class="header-text">Withdrawable amount : {{ amount }} INR.</div>
     </div>
-
-    <form action="{{ post_action }}" method="POST" id="withdrawForm">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <input type="hidden" name="amount" value="{{ amount }}">
-        <input type="hidden" name="confirmed" value="true">
-        
-        {% if user_bank and user_bank.bank_account_name and user_bank.bank_account_number %}
-        <div class="bank-card" id="savedCard" onclick="useSavedCard()">
-            <div class="card-circle"></div>
-            <div class="card-detail">
-                <div class="label">Bank Name</div>
-                <div class="value">{{ user_bank.bank_name if user_bank.bank_name else 'Not added' }}</div>
-            </div>
-            <div class="card-detail">
-                <div class="label">Branch</div>
-                <div class="value">{{ user_bank.bank_branch if user_bank.bank_branch else 'Not added' }}</div>
-            </div>
-            <div class="card-detail">
-                <div class="label">Name</div>
-                <div class="value">{{ user_bank.bank_account_name }}</div>
-            </div>
-            <div class="card-detail">
-                <div class="label">Account Number</div>
-                <div class="value">{{ user_bank.bank_account_number }}</div>
-            </div>
-            <div class="card-detail">
-                <div class="label">IFSC code</div>
-                <div class="value">{{ user_bank.bank_ifsc }}</div>
-            </div>
-        </div>
-        <div class="add-new-text" id="toggleNewAccountBtn" onclick="toggleNewAccount()">Add New BankAccount</div>
-        {% endif %}
-
-        <div id="newAccountForm" class="{{ 'hidden' if (user_bank and user_bank.bank_account_name) else '' }}">
-            <div class="input-group">
-                <i class="fa-solid fa-building-columns"></i>
-                <input type="text" id="bankNameInput" name="bank_name" placeholder="Bank Name" required value="{{ user_bank.bank_name if user_bank and user_bank.bank_name else '' }}">
-            </div>
-            
-            <div class="input-group">
-                <i class="fa-solid fa-location-dot"></i>
-                <input type="text" id="branchInput" name="branch_name" placeholder="Branch Name" required value="{{ user_bank.bank_branch if user_bank and user_bank.bank_branch else '' }}">
-            </div>
-
-            <div class="input-group">
-                <i class="fa-solid fa-hashtag"></i>
-                <input type="text" id="accNumberInput" name="account_number" placeholder="Bank account number" required pattern="[0-9]{9,18}" title="Valid account number (9-18 digits)" value="{{ user_bank.bank_account_number if user_bank and user_bank.bank_account_number else '' }}">
-            </div>
-            
-            <div class="input-group">
-                <i class="fa-solid fa-money-check"></i>
-                <input type="text" id="ifscInput" name="ifsc_code" placeholder="IFSC code" required pattern="^[A-Z]{4}0[A-Z0-9]{6}$" title="Valid IFSC code (e.g., SBIN0001234)" value="{{ user_bank.bank_ifsc if user_bank and user_bank.bank_ifsc else '' }}">
-            </div>
-
-            <div class="input-group" style="margin-bottom: 15px;">
-                <i class="fa-solid fa-user"></i>
-                <input type="text" id="accNameInput" name="account_name" placeholder="Full name according to your Bank Passbook" required value="{{ user_bank.bank_account_name if user_bank and user_bank.bank_account_name else '' }}">
-            </div>
-        </div>
-
-
-
-        <button type="submit" id="submitBtn" style="width: 100%;">
-            <i class="fa-solid fa-check"></i> Confirm Withdrawal
-        </button>
-    </form>
     
-
+    <div class="section">
+        <div class="section-header">
+            <div class="title"><span class="step-num">1</span> Enter amount</div>
+            <i class="fa-solid fa-chevron-down chevron"></i>
+        </div>
+    </div>
     
-    <button class="btn-cancel" onclick="window.history.back()">Cancel</button>
+    <div class="section">
+        <div class="section-header" style="border-bottom: none;">
+            <div class="title"><span class="step-num">2</span> Payment details</div>
+            <i class="fa-solid fa-chevron-up chevron"></i>
+        </div>
+        <div class="section-content">
+            <form action="{{ post_action }}" method="POST" id="withdrawForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="amount" value="{{ amount }}">
+                <input type="hidden" name="confirmed" value="true">
+                
+                {% if user_bank and user_bank.bank_account_name and user_bank.bank_account_number %}
+                <div class="bank-card" id="savedCard" onclick="useSavedCard()">
+                    <div class="card-circle"></div>
+                    <div class="card-detail">
+                        <div class="label">Name</div>
+                        <div class="value">{{ user_bank.bank_account_name }}</div>
+                    </div>
+                    <div class="card-detail">
+                        <div class="label">Account Number</div>
+                        <div class="value">{{ user_bank.bank_account_number }}</div>
+                    </div>
+                    <div class="card-detail">
+                        <div class="label">IFSC code</div>
+                        <div class="value">{{ user_bank.bank_ifsc }}</div>
+                    </div>
+                </div>
+                <div class="add-new-btn" id="toggleNewAccountBtn" onclick="toggleNewAccount()">Add New BankAccount</div>
+                {% endif %}
+
+                <div id="newAccountForm" class="{{ 'hidden' if (user_bank and user_bank.bank_account_name) else '' }}">
+                    <div class="form-group">
+                        <label>Bank account number</label>
+                        <input type="text" id="accNumberInput" name="account_number" value="{{ user_bank.bank_account_number if user_bank and user_bank.bank_account_number else '' }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>IFSC code</label>
+                        <input type="text" id="ifscInput" name="ifsc_code" value="{{ user_bank.bank_ifsc if user_bank and user_bank.bank_ifsc else '' }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Full name according to your Bank Passbook</label>
+                        <input type="text" id="accNameInput" name="account_name" value="{{ user_bank.bank_account_name if user_bank and user_bank.bank_account_name else '' }}" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-continue" id="submitBtn">Continue</button>
+            </form>
+            <button class="btn-cancel" onclick="window.history.back()">Cancel</button>
+        </div>
+    </div>
 </div>
 
 <script>
     function updateRequiredStatus(isNew) {
-        const fields = ['bankNameInput', 'branchInput', 'accNameInput', 'accNumberInput', 'ifscInput'];
+        const fields = ['accNameInput', 'accNumberInput', 'ifscInput'];
         fields.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.required = isNew;
@@ -271,51 +265,38 @@
 
     function useSavedCard() {
         document.getElementById('newAccountForm').classList.add('hidden');
-        document.getElementById('savedCard').classList.add('selected');
         updateRequiredStatus(false);
     }
 
     function toggleNewAccount() {
         var form = document.getElementById('newAccountForm');
-        var card = document.getElementById('savedCard');
         
         form.classList.toggle('hidden');
         
         if (!form.classList.contains('hidden')) {
-            if (card) card.classList.remove('selected');
             updateRequiredStatus(true);
-            
-            // Clear inputs if they want to add a *new* account
-            document.getElementById('bankNameInput').value = '';
-            document.getElementById('branchInput').value = '';
             document.getElementById('accNameInput').value = '';
             document.getElementById('accNumberInput').value = '';
             document.getElementById('ifscInput').value = '';
         } else {
-            if (card) card.classList.add('selected');
             updateRequiredStatus(false);
-
-            // Reset to saved values
             const savedBank = {
-                name: '{{ user_bank.bank_name if user_bank and user_bank.bank_name else "" }}',
-                branch: '{{ user_bank.bank_branch if user_bank and user_bank.bank_branch else "" }}',
                 accName: '{{ user_bank.bank_account_name if user_bank and user_bank.bank_account_name else "" }}',
                 accNum: '{{ user_bank.bank_account_number if user_bank and user_bank.bank_account_number else "" }}',
                 ifsc: '{{ user_bank.bank_ifsc if user_bank and user_bank.bank_ifsc else "" }}'
             };
-            document.getElementById('bankNameInput').value = savedBank.name;
-            document.getElementById('branchInput').value = savedBank.branch;
             document.getElementById('accNameInput').value = savedBank.accName;
             document.getElementById('accNumberInput').value = savedBank.accNum;
             document.getElementById('ifscInput').value = savedBank.ifsc;
         }
     }
 
-    // Initialize required status on load
     window.addEventListener('DOMContentLoaded', () => {
         const form = document.getElementById('newAccountForm');
-        const formVisible = !form.classList.contains('hidden') && form.style.display !== 'none';
-        updateRequiredStatus(formVisible);
+        if(form) {
+            const formVisible = !form.classList.contains('hidden');
+            updateRequiredStatus(formVisible);
+        }
     });
 
     document.getElementById('withdrawForm').addEventListener('submit', function() {

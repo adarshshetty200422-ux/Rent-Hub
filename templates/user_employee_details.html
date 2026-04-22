@@ -9,6 +9,23 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <style>
+        .stars {
+            display: flex;
+            cursor: pointer;
+            font-size: 30px;
+            color: #ccc;
+            justify-content: center;
+            gap: 5px;
+            margin: 15px 0;
+        }
+        .stars span {
+            transition: color 0.2s;
+        }
+        .stars span.active {
+            color: gold;
+        }
+    </style>
 </head>
 
 <body class="dashboard-body">
@@ -22,12 +39,9 @@
             <a href="javascript:history.back()" class="btn-nav-profile">
                 <i class="fa-solid fa-arrow-left"></i> Back
             </a>
-            <a href="#" onclick="document.getElementById('logout-form').submit(); return false;" class="btn-nav-logout" id="logout-btn">
+            <a href="{{ url_for('logout') }}" class="btn-nav-logout" id="logout-btn">
                 <i class="fa-solid fa-right-from-bracket"></i> Logout
             </a>
-            <form id="logout-form" action="{{ url_for('logout') }}" method="POST" style="display:none;">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            </form>
         </div>
     </nav>
 
@@ -51,13 +65,8 @@
             <div class="card">
                 <div class="card-header">
                     <div class="card-title" style="display: flex; align-items: center; gap: 15px;">
-                        {% if employee.profile_pic %}
-                            <div style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center;">
-                                <img src="{{ url_for('static', filename=employee.profile_pic.replace('static/', '')) }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
-                            </div>
-                        {% else %}
-                            <span class="icon"><i class="fa-solid fa-briefcase"></i></span> 
-                        {% endif %}
+                        <span class="icon"><i class="fa-solid fa-briefcase"></i></span> 
+
                         Profile Information
                     </div>
                 </div>
@@ -126,10 +135,63 @@
                         </button>
                     </form>
                     {% endif %}
+
+                    <div style="margin-top: 30px; text-align: center; padding-top: 20px; border-top: 1px solid var(--border);">
+                        <h3 style="color: var(--text-primary); font-size: 1.2rem;">Rate this Profile:</h3>
+                        
+                        <div class="stars" id="starRating">
+                            <span data-value="1">★</span>
+                            <span data-value="2">★</span>
+                            <span data-value="3">★</span>
+                            <span data-value="4">★</span>
+                            <span data-value="5">★</span>
+                        </div>
+                        
+                        <p id="ratingValue" style="color: var(--text-secondary); font-weight: 500;">Rating: 0</p>
+                    </div>
+
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        const stars = document.querySelectorAll("#starRating span");
+        const ratingText = document.getElementById("ratingValue");
+
+        stars.forEach(star => {
+            star.addEventListener("click", () => {
+                let value = star.getAttribute("data-value");
+
+                stars.forEach(s => s.classList.remove("active"));
+
+                for (let i = 0; i < value; i++) {
+                    stars[i].classList.add("active");
+                }
+
+                ratingText.innerText = "Rating: " + value;
+                
+                // Send to backend
+                fetch(`/rate_profile/{{ employee.id }}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": document.querySelector('input[name="csrf_token"]').value
+                    },
+                    body: JSON.stringify({ rating: value })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.average) {
+                        ratingText.innerText = "Average Rating: " + data.average.toFixed(1);
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000); // Reload after 1 second to see the updated stars
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>
