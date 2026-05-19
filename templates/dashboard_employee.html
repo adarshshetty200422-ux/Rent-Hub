@@ -1,382 +1,536 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Employee dashboard for Rent Hub - manage your profile, availability, and view messages.">
-    <title>Employee Dashboard — Rent Hub</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Rent Hub | Employee Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .active-tab {
+            color: #60a5fa;
+            border-bottom: 2px solid #3b82f6;
+        }
+        .custom-gradient-btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+            transition: all 0.3s ease;
+        }
+        .custom-gradient-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        /* Subtle scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #020617;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px); z-index: 2000; justify-content: center; align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+    </style>
 </head>
-
-<style>
-    .dropdown-item:hover {
-        background-color: rgba(255,255,255,0.1) !important;
-    }
-</style>
-<body class="dashboard-body">
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="nav-brand">
-            <div class="nav-brand-icon">🏠</div>
-            <span>Rent Hub</span>
-        </div>
-        <div class="nav-actions">
-
-            <a href="#" onclick="toggleDeposit(); return false;" class="btn-nav-logout" style="background: rgba(0, 206, 201, 0.15); color: var(--accent); border-color: rgba(0, 206, 201, 0.2); margin-right: 15px;">
-                <i class="fa-solid fa-wallet"></i> Deposit
-            </a>
-            <div class="nav-user-dropdown-container" style="position: relative; display: inline-block;">
-                <div class="nav-user-info" onclick="toggleUserDropdown(event)" style="cursor: pointer;" id="profile-btn">
-                        <div class="nav-avatar">{{ session.get('username', 'E')[0] }}</div>
-                    <span class="nav-username">{{ session.get('username') }}</span>
-                    <span class="nav-role" style="background: rgba(0, 206, 201, 0.15); color: var(--accent);">EMPLOYEE</span>
+<body class="bg-[#020617]">
+    <div class="min-h-screen flex flex-col">
+        <!-- Top Navigation -->
+        <nav class="fixed top-0 left-0 right-0 z-50 bg-[#020617]/90 backdrop-blur-md border-b border-white/5 px-8 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
+                    <iconify-icon icon="lucide:home" class="text-white text-lg"></iconify-icon>
                 </div>
-                <div id="userDropdown" class="dropdown-content" style="display: none; position: absolute; top: 100%; right: 0; background-color: var(--card-bg); min-width: 220px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5); z-index: 100; border-radius: 8px; border: 1px solid var(--border); margin-top: 10px; overflow: hidden; text-align: left;">
-                    <a href="#" onclick="toggleUserDropdown(event); toggleProfile(); return false;" class="dropdown-item" style="color: var(--text); padding: 12px 16px; text-decoration: none; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border);"><i class="fa-solid fa-user" style="width: 20px;"></i> Profile</a>
-                    <a href="#" onclick="toggleUserDropdown(event); toggleMessageHistory(); return false;" class="dropdown-item" style="color: var(--text); padding: 12px 16px; text-decoration: none; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border);"><i class="fa-solid fa-envelope" style="width: 20px;"></i> Message History</a>
-                    <a href="#" onclick="toggleUserDropdown(event); toggleWorkHistory(); return false;" class="dropdown-item" style="color: var(--text); padding: 12px 16px; text-decoration: none; display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-briefcase" style="width: 20px;"></i> Work History</a>
-                </div>
+                <span class="text-xl font-bold tracking-tight text-white">Rent Hub</span>
             </div>
-            <a href="{{ url_for('logout') }}" class="btn-nav-logout" id="logout-btn">
-                <i class="fa-solid fa-right-from-bracket"></i> Logout
-            </a>
-        </div>
-    </nav>
 
-    <!-- Main Content -->
-    <div class="dashboard-content">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <ul class="flash-messages">
-            {% for category, message in messages %}
-            <li class="{{ category }}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-        {% endwith %}
-
-        <div class="dashboard-welcome">
-            <h1>Welcome back, <span class="highlight">{{ session.get('username') }}</span></h1>
-            <p>Manage your profile and view updates from here.</p>
-        </div>
-
-        {% if employee %}
-        <div class="employee-layout">
-            <!-- Left: Employee Info -->
-            <div>
-                <div class="info-card">
-                    <h3><i class="fa-solid fa-id-card"></i> Employee Info</h3>
-                    <div class="info-list">
-                        <div class="profile-header" style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px;">
-                                <div class="profile-avatar" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--primary)); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; color: white; margin: 0 auto 10px;">{{ employee.username[0] | upper }}</div>
-                            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">Registered Professional</p>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Username</span>
-                            <span class="info-value">{{ employee.username }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Role Status</span>
-                            <span class="info-value" style="color: var(--success); text-transform: capitalize;">{{ employee.account_status }} Employee</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Gmail ID</span>
-                            <span class="info-value">{{ employee.gmail }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Work Details</span>
-                            <span class="info-value">{{ employee.work_details }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Availability</span>
-                            <form action="{{ url_for('update_employee_availability') }}" method="POST" style="margin: 0;">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <select name="availability" onchange="this.form.submit()"
-                                    class="{{ 'text-success' if employee.availability == 'AVAILABLE' else 'text-danger' }}"
-                                    id="availability-select">
-                                    <option value="AVAILABLE" style="color: black;" {% if employee.availability=='AVAILABLE' %}selected{% endif %}>AVAILABLE</option>
-                                    <option value="NOT AVAILABLE" style="color: black;" {% if employee.availability=='NOT AVAILABLE' %}selected{% endif %}>NOT AVAILABLE</option>
-                                    <option value="BOOKED" style="color: black;" {% if employee.availability=='BOOKED' %}selected{% endif %}>BOOKED</option>
-                                </select>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- The deposit section has been moved to a modal -->
-
-            <!-- Right: Requests & Messages -->
-            <div>
-
-            </div>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Message History Modal -->
-    <div class="modal-overlay" id="messageHistoryModal">
-        <div class="modal">
-            <button class="modal-close" onclick="toggleMessageHistory()">&times;</button>
-            <h3><i class="fa-solid fa-envelope"></i> Message History</h3>
-            <div class="modal-body" style="max-height: 400px; overflow-y: auto; margin-top: 20px;">
-                {% if emp_messages %}
-                <div class="messages-list">
-                    {% for msg in emp_messages %}
-                    <div class="message-item" style="padding: 15px; border-bottom: 1px solid var(--border); margin-bottom: 10px; background: var(--card-bg); border-radius: 8px;">
-                        <p style="margin: 0; color: var(--text);">{{ msg.message }}</p>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="empty-state">
-                    <div class="empty-icon">📭</div>
-                    <p>No messages yet. You're all caught up!</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Work History Modal -->
-    <div class="modal-overlay" id="workHistoryModal">
-        <div class="modal" style="max-width: 600px;">
-            <button class="modal-close" onclick="toggleWorkHistory()">&times;</button>
-            <h3><i class="fa-solid fa-briefcase"></i> Work History</h3>
-            <div class="modal-body" style="max-height: 400px; overflow-y: auto; margin-top: 20px;">
-                {% if service_requests %}
-                <div class="requests-list" style="display: flex; flex-direction: column; gap: 15px;">
-                    {% for req in service_requests %}
-                    <div class="request-card" style="padding: 15px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg);">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <span style="font-weight: bold; color: var(--accent);">Request #{{ req.id }}</span>
-                            <span class="status-badge 
-                                {% if req.status == 'Completed' %}badge-approved
-                                {% elif req.status == 'Accepted' %}badge-pending
-                                {% else %}badge-blocked{% endif %}" style="font-size: 0.8rem; padding: 4px 8px; border-radius: 12px; background: rgba(0, 206, 201, 0.15); color: var(--success);">
-                                {{ req.status }}
-                            </span>
-                        </div>
-                        <p style="margin: 5px 0; color: var(--text);"><strong>Client:</strong> {{ req.user_name }} ({{ req.user_gmail }})</p>
-                        {% if req.rating %}
-                        <p style="margin: 5px 0; color: #feca57;"><strong>Rating:</strong> {{ req.rating }} ⭐</p>
+            <div class="flex items-center gap-6">
+                <!-- Notifications -->
+                <div class="relative" id="notifWrapper">
+                    <button onclick="toggleNotifications(event)" class="relative w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors" title="Notifications">
+                        <iconify-icon icon="lucide:bell" class="text-lg text-gray-400"></iconify-icon>
+                        {% if emp_messages %}
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
                         {% endif %}
+                    </button>
+                    
+                    <!-- Dropdown -->
+                    <div id="notificationDropdown" class="hidden absolute right-0 mt-2 w-80 bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                        <div class="p-4 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                            <h4 class="font-bold text-white text-sm">Notifications</h4>
+                            <span class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded-md font-bold uppercase tracking-wider">{{ emp_messages|length if emp_messages else 0 }} New</span>
+                        </div>
+                        <div class="p-2 max-h-80 overflow-y-auto">
+                            {% if emp_messages %}
+                                {% for msg in emp_messages %}
+                                <div class="p-3 hover:bg-white/5 rounded-xl transition-colors flex gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                                        <iconify-icon icon="lucide:mail" class="text-blue-400"></iconify-icon>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-300 leading-snug">{{ msg.message }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="p-8 text-center text-gray-500">
+                                    <iconify-icon icon="lucide:inbox" class="text-4xl mb-2 opacity-50"></iconify-icon>
+                                    <p class="text-sm">No new notifications</p>
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
-                    {% endfor %}
                 </div>
-                {% else %}
-                <div class="empty-state">
-                    <div class="empty-icon">🛠️</div>
-                    <p>No work history found.</p>
+
+                <button onclick="document.getElementById('depositModal').classList.add('active')" class="hidden md:flex items-center gap-2 bg-[#164e63] hover:bg-[#155e75] text-cyan-200 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all border border-cyan-700/50">
+                    <iconify-icon icon="lucide:wallet"></iconify-icon>
+                    Deposit
+                </button>
+
+                <div class="flex items-center gap-3 cursor-pointer" onclick="document.getElementById('editProfileModal').classList.add('active')">
+                    <div class="flex flex-col items-end">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-white">{{ session.get('username') }}</span>
+                            <span class="text-[10px] bg-blue-500/10 text-blue-400 font-bold px-2 py-0.5 rounded border border-blue-500/20 uppercase tracking-widest">Employee</span>
+                        </div>
+                    </div>
+                    <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold border-2 border-white/10">
+                        {{ session.get('username', 'E')[0] | upper }}
+                    </div>
+                </div>
+
+                <a href="{{ url_for('logout') }}" class="flex items-center gap-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all border border-rose-500/20">
+                    <iconify-icon icon="lucide:log-out"></iconify-icon>
+                    Logout
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Container -->
+        <main class="flex-1 pt-24 pb-12 px-8 max-w-[1600px] mx-auto w-full">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="mb-8 space-y-4">
+                {% for category, message in messages %}
+                <div class="flash-message p-4 rounded-xl flex items-center justify-between transition-all duration-500 {% if category == 'error' %}bg-rose-500/10 border border-rose-500/20 text-rose-400{% else %}bg-emerald-500/10 border border-emerald-500/20 text-emerald-400{% endif %}">
+                    <div class="flex items-center gap-3">
+                        <iconify-icon icon="{% if category == 'error' %}lucide:alert-circle{% else %}lucide:check-circle{% endif %}" class="text-xl"></iconify-icon>
+                        <p class="text-sm">{{ message }}</p>
+                    </div>
+                    <button class="hover:opacity-70" onclick="this.parentElement.style.display='none'">
+                        <iconify-icon icon="lucide:x" class="text-lg"></iconify-icon>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <!-- Greeting & Tabs -->
+            <div class="mb-10">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6">
+                    <div>
+                        <h1 class="text-4xl font-extrabold tracking-tight mb-2">Welcome back, <span class="text-blue-500">{{ session.get('username') }}</span></h1>
+                        <p class="text-gray-400">Manage your profile and view updates from here.</p>
+                    </div>
+                    <div class="flex items-center gap-4 bg-white/5 p-1 rounded-xl border border-white/10 overflow-x-auto">
+                        <button class="px-6 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white shadow-lg whitespace-nowrap">Dashboard</button>
+                        <button onclick="document.getElementById('acceptedBookingsModal').classList.add('active')" class="px-6 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white transition-colors whitespace-nowrap">Bookings</button>
+                        <button onclick="document.getElementById('editProfileModal').classList.add('active')" class="px-6 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white transition-colors whitespace-nowrap">Profile</button>
+                    </div>
+                </div>
+
+                {% if employee %}
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="glass-card p-6 rounded-3xl relative overflow-hidden group cursor-pointer" onclick="document.getElementById('acceptedBookingsModal').classList.add('active')">
+                        <div class="absolute top-0 right-0 p-4">
+                            <iconify-icon icon="lucide:layout-grid" class="text-blue-500/20 text-5xl group-hover:scale-110 transition-transform"></iconify-icon>
+                        </div>
+                        <p class="text-gray-400 text-sm font-bold tracking-wide uppercase mb-1">Total Bookings</p>
+                        <div class="flex items-end gap-3">
+                            <h3 class="text-4xl font-black">{{ service_requests|length }}</h3>
+                            <span class="text-emerald-400 text-xs font-bold mb-2">+12%</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-3xl relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4">
+                            <iconify-icon icon="lucide:clock" class="text-amber-500/20 text-5xl group-hover:scale-110 transition-transform"></iconify-icon>
+                        </div>
+                        <p class="text-gray-400 text-sm font-bold tracking-wide uppercase mb-1">Active Rentals</p>
+                        <h3 class="text-4xl font-black">{{ '%02d' % (service_requests|selectattr('status', 'in', ['Pending', 'Accepted'])|list|length) }}</h3>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-3xl relative overflow-hidden group cursor-pointer" onclick="document.getElementById('depositModal').classList.add('active')">
+                        <div class="absolute top-0 right-0 p-4">
+                            <iconify-icon icon="lucide:credit-card" class="text-emerald-500/20 text-5xl group-hover:scale-110 transition-transform"></iconify-icon>
+                        </div>
+                        <p class="text-gray-400 text-sm font-bold tracking-wide uppercase mb-1">Deposit Balance</p>
+                        <h3 class="text-4xl font-black font-mono tracking-tighter">₹{{ "%.2f"|format(employee.deposit_balance or 0.0) }}</h3>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-3xl relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4">
+                            <iconify-icon icon="lucide:star" class="text-purple-500/20 text-5xl group-hover:scale-110 transition-transform"></iconify-icon>
+                        </div>
+                        <p class="text-gray-400 text-sm font-bold tracking-wide uppercase mb-1">Trust Rating</p>
+                        <div class="flex items-end gap-1">
+                            <h3 class="text-4xl font-black">{{ "%.1f"|format(employee.rating or 0.0) }}</h3>
+                            <span class="text-gray-500 text-xl font-bold mb-1">/5.0</span>
+                        </div>
+                    </div>
                 </div>
                 {% endif %}
             </div>
-        </div>
-    </div>
-
-    <!-- Profile Modal -->
-    <div class="modal-overlay" id="profileModal">
-        <div class="modal">
-            <button class="modal-close" onclick="toggleProfile()" id="close-profile-modal">&times;</button>
-            <h3>Personal Details</h3>
 
             {% if employee %}
-            <div class="profile-details">
-                <div class="profile-header" style="text-align: center; margin-bottom: 20px;">
-                        <div class="profile-avatar" style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--primary)); display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: bold; color: white; margin: 0 auto 10px;">{{ employee.username[0] | upper }}</div>
+            <!-- Main Content Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- Left: Employee Info Sidebar -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="glass-card rounded-[2.5rem] p-8 border border-white/10">
+                        <div class="flex items-center gap-3 mb-8">
+                            <iconify-icon icon="lucide:user-circle" class="text-blue-500 text-2xl"></iconify-icon>
+                            <h2 class="text-xl font-bold">Employee Info</h2>
+                        </div>
+
+                        <div class="flex flex-col items-center mb-8">
+                            <div class="relative">
+                                <div class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-3xl font-bold border-4 border-slate-900 shadow-2xl">
+                                    {{ employee.username[0] | upper }}
+                                </div>
+                                <div class="absolute bottom-1 right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-slate-900"></div>
+                            </div>
+                            <h3 class="mt-4 text-xl font-extrabold">{{ employee.username }}</h3>
+                            <span class="text-blue-400 text-xs font-bold uppercase tracking-widest mt-1">{{ employee.employee_type or 'Registered Professional' }}</span>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="flex items-center justify-between pb-4 border-b border-white/5">
+                                <span class="text-gray-400 text-sm">Username</span>
+                                <span class="text-white font-bold text-sm">{{ employee.username }}</span>
+                            </div>
+                            <div class="flex items-center justify-between pb-4 border-b border-white/5">
+                                <span class="text-gray-400 text-sm">Role Status</span>
+                                <span class="text-emerald-400 font-bold text-sm bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/20 capitalize">{{ employee.account_status }} Employee</span>
+                            </div>
+                            <div class="flex flex-col pb-4 border-b border-white/5">
+                                <span class="text-gray-400 text-sm mb-1">Gmail ID</span>
+                                <span class="text-blue-400 font-bold text-sm">{{ employee.gmail }}</span>
+                            </div>
+
+                            <div>
+                                <span class="text-gray-400 text-sm block mb-3">Work Details</span>
+                                <div class="flex flex-wrap gap-2">
+                                    {% if employee.work_details %}
+                                        {% for work in employee.work_details.split(',') %}
+                                        <span class="text-[10px] bg-slate-800 text-gray-300 px-3 py-1 rounded-lg border border-white/5 font-bold uppercase tracking-tight">{{ work.strip() }}</span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-xs text-gray-500">Not specified</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="pt-4">
+                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
+                                    <div class="flex items-center gap-3">
+                                        <iconify-icon icon="lucide:toggle-right" class="text-blue-500 text-2xl"></iconify-icon>
+                                        <span class="text-sm font-bold text-white">Availability</span>
+                                    </div>
+                                    <form action="{{ url_for('update_employee_availability') }}" method="POST" class="m-0">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <select name="availability" onchange="this.form.submit()" class="bg-slate-900 border border-white/10 rounded-lg text-xs font-black uppercase tracking-widest px-2 py-1 outline-none {% if employee.availability == 'AVAILABLE' %}text-emerald-400{% elif employee.availability == 'NOT AVAILABLE' %}text-rose-400{% else %}text-amber-400{% endif %}">
+                                            <option value="AVAILABLE" {% if employee.availability=='AVAILABLE' %}selected{% endif %}>AVAILABLE</option>
+                                            <option value="NOT AVAILABLE" {% if employee.availability=='NOT AVAILABLE' %}selected{% endif %}>NOT AVAILABLE</option>
+                                            <option value="BOOKED" {% if employee.availability=='BOOKED' %}selected{% endif %}>BOOKED</option>
+                                        </select>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Earnings Widget -->
+                    <div class="glass-card rounded-[2.5rem] p-8 border border-white/10">
+                        <h3 class="font-bold mb-4 flex items-center gap-2">
+                            <iconify-icon icon="lucide:trending-up" class="text-blue-500"></iconify-icon>
+                            Monthly Performance
+                        </h3>
+                        <div class="h-32 flex items-end gap-2 px-2">
+                            <div class="flex-1 bg-blue-500/20 h-1/2 rounded-t-lg"></div>
+                            <div class="flex-1 bg-blue-500/40 h-2/3 rounded-t-lg"></div>
+                            <div class="flex-1 bg-blue-500/60 h-1/3 rounded-t-lg"></div>
+                            <div class="flex-1 bg-blue-600 h-full rounded-t-lg"></div>
+                            <div class="flex-1 bg-blue-500/40 h-1/2 rounded-t-lg"></div>
+                        </div>
+                        <div class="mt-4 flex justify-between">
+                            <span class="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">Week 1</span>
+                            <span class="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">Week 2</span>
+                            <span class="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">Week 3</span>
+                            <span class="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">Week 4</span>
+                            <span class="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">Week 5</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="profile-row">
-                    <span class="label">Username</span>
-                    <span class="value">{{ employee.username }}</span>
-                </div>
-                <div class="profile-row">
-                    <span class="label">Role</span>
-                    <span class="value" style="color: var(--success); text-transform: capitalize;">{{ employee.account_status }} Employee</span>
-                </div>
-                <div class="profile-row">
-                    <span class="label">Gmail ID</span>
-                    <span class="value">{{ employee.gmail }}</span>
-                </div>
-                <div class="profile-row">
-                    <span class="label">Work Details</span>
-                    <span class="value">{{ employee.work_details }}</span>
-                </div>
-                <div class="profile-row">
-                    <span class="label">Deposit Balance</span>
-                    <span class="value">₹{{ employee.deposit_balance or 0.0 }}</span>
-                </div>
-                <div class="profile-row">
-                    <span class="label">Availability</span>
-                    <span class="value {{ 'text-success' if employee.availability == 'AVAILABLE' else 'text-danger' }}">{{ employee.availability or 'AVAILABLE' }}</span>
+
+                <!-- Right: Content Area -->
+                <div class="lg:col-span-8 space-y-6">
+                    
+                    <!-- Active Work & Requests -->
+                    <div class="glass-card rounded-[2.5rem] p-8 border border-white/10">
+                        <div class="flex items-center justify-between mb-8">
+                            <div class="flex items-center gap-3">
+                                <iconify-icon icon="lucide:clipboard-list" class="text-blue-500 text-2xl"></iconify-icon>
+                                <h2 class="text-xl font-bold">Active Work & Requests</h2>
+                            </div>
+                            <button class="text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors" onclick="document.getElementById('acceptedBookingsModal').classList.add('active')">View History</button>
+                        </div>
+
+                        <!-- Request Cards -->
+                        <div class="space-y-4">
+                            {% if service_requests %}
+                                {% for req in service_requests %}
+                                <div class="bg-slate-900/50 border border-white/5 rounded-2xl p-6 transition-all hover:border-blue-500/30 group">
+                                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                                        <div>
+                                            <div class="flex items-center gap-3 mb-1">
+                                                <h4 class="text-lg font-extrabold">Request #{{ req.id }}</h4>
+                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded border 
+                                                    {% if req.status == 'Completed' %}bg-blue-500/10 text-blue-400 border-blue-500/20
+                                                    {% elif req.status == 'Accepted' %}bg-emerald-500/10 text-emerald-400 border-emerald-500/20
+                                                    {% else %}bg-amber-500/10 text-amber-400 border-amber-500/20{% endif %}">
+                                                    {{ req.status }}
+                                                </span>
+                                            </div>
+                                            <div class="flex flex-col gap-1">
+                                                <span class="text-sm text-gray-300">Client: <span class="font-bold">{{ req.user_name }}</span></span>
+                                                <span class="text-xs text-blue-400/70 font-medium">{{ req.user_gmail }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <div class="text-right hidden md:block">
+                                                <span class="block text-xs text-gray-500 font-bold uppercase tracking-widest">Status</span>
+                                                <span class="text-sm font-bold text-white">{{ req.status }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4 flex gap-3">
+                                        {% if req.status == 'Pending' %}
+                                            <form action="{{ url_for('accept_service', req_id=req.id) }}" method="POST" class="flex-1 m-0">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl font-bold text-sm text-white transition-all">Accept</button>
+                                            </form>
+                                            <form action="{{ url_for('reject_service', req_id=req.id) }}" method="POST" class="flex-1 m-0">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="w-full bg-rose-600 hover:bg-rose-500 py-3 rounded-xl font-bold text-sm text-white transition-all">Reject</button>
+                                            </form>
+                                        {% elif req.status == 'Accepted' %}
+                                            <form action="{{ url_for('complete_service', req_id=req.id) }}" method="POST" class="w-full m-0">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="w-full custom-gradient-btn py-3 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2">
+                                                    <iconify-icon icon="lucide:check-circle"></iconify-icon>
+                                                    Mark as Completed
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-12">
+                                    <iconify-icon icon="lucide:inbox" class="text-5xl text-gray-500 mb-4"></iconify-icon>
+                                    <p class="text-gray-400">No active work requests found.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Schedule & Performance -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+
+                        <div class="glass-card rounded-[2rem] p-8 border border-white/10 flex flex-col">
+                            <h3 class="font-bold mb-6 flex items-center gap-2">
+                                <iconify-icon icon="lucide:award" class="text-blue-500"></iconify-icon>
+                                Performance Metrics
+                            </h3>
+                            <div class="flex-1 flex flex-col justify-center space-y-6">
+                                <div>
+                                    <div class="flex justify-between text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">
+                                        <span>Trust Rating</span>
+                                        <span class="text-emerald-400">{{ "%.1f"|format(employee.rating or 0.0) }}/5</span>
+                                    </div>
+                                    <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                                        <div class="h-full bg-emerald-500" {{ 'style="width: %.1f%%;"' | format(((employee.rating or 0.0) / 5) * 100) | safe }}></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">
+                                        <span>Active Factor</span>
+                                        <span class="text-blue-400">High</span>
+                                    </div>
+                                    <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                                        <div class="h-full bg-blue-500 w-[92%]"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <button class="btn btn-primary btn-block" onclick="toggleProfile(); toggleEditProfile();" id="edit-profile-btn">
-                <i class="fa-solid fa-pen-to-square"></i> Edit Profile
-            </button>
             {% endif %}
-        </div>
+        </main>
+
+        <!-- Bottom Footer -->
+        <footer class="py-8 px-8 border-t border-white/5 mt-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <p class="text-gray-600 text-[10px] font-bold uppercase tracking-widest">© 2026 Rent Hub Pro Service Module v2.0</p>
+            <div class="flex items-center gap-6">
+                <a href="#" class="text-gray-600 hover:text-white text-[10px] font-bold uppercase tracking-widest">Support Center</a>
+                <a href="#" class="text-gray-600 hover:text-white text-[10px] font-bold uppercase tracking-widest">Help Desk</a>
+                <a href="#" class="text-gray-600 hover:text-white text-[10px] font-bold uppercase tracking-widest">Service Terms</a>
+            </div>
+        </footer>
     </div>
 
-    <!-- Edit Profile Modal -->
+    <!-- Modals -->
     <div class="modal-overlay" id="editProfileModal">
-        <div class="modal">
-            <button class="modal-close" onclick="toggleEditProfile()" id="close-edit-modal">&times;</button>
-            <h3>Update Profile</h3>
-
+        <div class="bg-[#0f172a] border border-white/10 rounded-2xl p-8 w-full max-w-md relative shadow-2xl mx-4">
+            <button onclick="document.getElementById('editProfileModal').classList.remove('active')" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <iconify-icon icon="lucide:x" class="text-xl"></iconify-icon>
+            </button>
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2"><iconify-icon icon="lucide:edit-3"></iconify-icon> Update Profile</h3>
+            
             {% if employee %}
-            <form action="{{ url_for('update_employee') }}" method="POST" class="modal-form" enctype="multipart/form-data">
+            <form action="{{ url_for('update_employee') }}" method="POST" class="space-y-4">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" name="username" value="{{ employee.username }}" required>
+                <div>
+                    <label class="block text-gray-400 text-sm mb-2">Username</label>
+                    <input type="text" name="username" value="{{ employee.username }}" required class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
                 </div>
-                <div class="form-group">
-                    <label>New Password <span class="hint">(leave empty to keep current)</span></label>
-                    <div class="input-group">
-                        <input type="password" id="edit_password" name="password" placeholder="Enter new password...">
-                        <button type="button" class="toggle-password" onclick="toggleEditPassword()">
-                            <svg id="editEyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                        </button>
-                    </div>
+                <div>
+                    <label class="block text-gray-400 text-sm mb-2">New Password <span class="text-xs">(leave empty to keep current)</span></label>
+                    <input type="password" name="password" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
                 </div>
-                <div class="form-group">
-                    <label>Gmail ID</label>
-                    <input type="email" name="gmail" value="{{ employee.gmail }}" required>
+                <div>
+                    <label class="block text-gray-400 text-sm mb-2">Gmail ID</label>
+                    <input type="email" name="gmail" value="{{ employee.gmail }}" required class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
                 </div>
-                <div class="form-group">
-                    <label>Work Details</label>
-                    <div class="checkbox-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 5px;">
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Moving / Shifting Service" {% if 'Moving / Shifting Service' in employee.work_details %}checked{% endif %}> Moving / Shifting Service</label>
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Cleaning Service" {% if 'Cleaning Service' in employee.work_details %}checked{% endif %}> Cleaning Service</label>
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Catering" {% if 'Catering' in employee.work_details %}checked{% endif %}> Catering</label>
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Furniture Rental Service" {% if 'Furniture Rental Service' in employee.work_details %}checked{% endif %}> Furniture Rental Service</label>
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Plumbing" {% if 'Plumbing' in employee.work_details %}checked{% endif %}> Plumbing</label>
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Electrician" {% if 'Electrician' in employee.work_details %}checked{% endif %}> Electrician</label>
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Appliance Service: AC Repair" {% if 'Appliance Service: AC Repair' in employee.work_details %}checked{% endif %}> Appliance Service (AC Repair)</label>
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Appliance Service: Washing Machine Repair" {% if 'Appliance Service: Washing Machine Repair' in employee.work_details %}checked{% endif %}> Appliance Service (Washing Machine Repair)</label>
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Appliance Service: Refrigerator Repair" {% if 'Appliance Service: Refrigerator Repair' in employee.work_details %}checked{% endif %}> Appliance Service (Refrigerator Repair)</label>
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="work_details" value="Appliance Service: TV Repair" {% if 'Appliance Service: TV Repair' in employee.work_details %}checked{% endif %}> Appliance Service (TV Repair)</label>
-                    </div>
+                <div>
+                    <label class="block text-gray-400 text-sm mb-2">Employee Type</label>
+                    <select name="employee_type" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                        <option value="Registered Professional" {% if employee.employee_type == 'Registered Professional' %}selected{% endif %}>Registered Professional</option>
+                        <option value="Agency / Company" {% if employee.employee_type == 'Agency / Company' %}selected{% endif %}>Agency / Company</option>
+                        <option value="Independent Freelancer" {% if employee.employee_type == 'Independent Freelancer' %}selected{% endif %}>Independent Freelancer</option>
+                    </select>
                 </div>
-                <button type="submit" class="btn btn-success btn-block" id="save-profile-btn">
-                    <i class="fa-solid fa-check"></i> Save Changes
-                </button>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-colors mt-6">Save Changes</button>
             </form>
             {% endif %}
         </div>
     </div>
 
-    <!-- Deposit Modal -->
     <div class="modal-overlay" id="depositModal">
-        <div class="modal">
-            <button class="modal-close" onclick="toggleDeposit()" id="close-deposit-modal">&times;</button>
-            <h3><i class="fa-solid fa-wallet"></i> Advance Deposit</h3>
-            
+        <div class="bg-[#0f172a] border border-white/10 rounded-2xl p-8 w-full max-w-md relative shadow-2xl mx-4">
+            <button onclick="document.getElementById('depositModal').classList.remove('active')" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <iconify-icon icon="lucide:x" class="text-xl"></iconify-icon>
+            </button>
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2"><iconify-icon icon="lucide:wallet"></iconify-icon> Advance Deposit</h3>
             {% if employee %}
-            <div class="info-list" style="margin-top: 15px;">
-                <div class="info-row">
-                    <span class="info-label">Advance Deposit Balance</span>
-                    <span class="info-value {{ 'text-success' if (employee.deposit_balance or 0) >= 2000 else 'text-danger' }}" style="font-weight: 600;">₹{{ employee.deposit_balance or 0.0 }}</span>
+            <div class="mb-6 bg-slate-900 p-4 rounded-xl border border-white/5">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm font-bold">Current Deposit</span>
+                    <span class="text-xl font-black text-emerald-400">₹{{ employee.deposit_balance or 0.0 }}</span>
                 </div>
-                {% if pending_withdrawals > 0 %}
-                <div class="info-row" style="padding-top: 0;">
-                    <span class="info-label" style="font-size: 0.9rem; color: var(--text-muted);">Pending Advance Withdrawal</span>
-                    <span class="info-value text-danger" style="font-size: 0.95rem; font-weight: 500;">₹{{ pending_withdrawals }} (Awaiting Approval)</span>
-                </div>
+                {% if (employee.deposit_balance or 0) < 2000 %}
+                <p class="text-xs text-rose-400 mt-2">Warning: Deposit balance is low. Please add funds to receive new requests.</p>
                 {% endif %}
-
-                <div class="info-row" style="border-bottom: 2px solid #eee; padding-bottom: 5px;"></div>
-                
-                <!-- Deposit Section -->
-                <div class="info-row" style="border-bottom: none; padding-bottom: 0;">
-                    <span class="info-label" style="display: block; margin-bottom: 10px; font-size: 0.85rem; color: #666;">Add Funds (Need total ₹2000 to accept new requests)</span>
-                </div>
-                <form action="{{ url_for('add_deposit') }}" method="POST" style="margin: 0; display: flex; gap: 10px; margin-bottom: 15px;">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="number" name="amount" min="1" step="0.01" required placeholder="Amount to deposit" style="width: 180px; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background-color: var(--card-bg); color: var(--text);">
-                    <button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-plus"></i> Deposit</button>
-                </form>
-                
-                <!-- Withdraw Section -->
-                <div class="info-row" style="border-bottom: none; padding-bottom: 0; padding-top: 5px;">
-                    <span class="info-label" style="display: block; margin-bottom: 10px; font-size: 0.85rem; color: #666;">Withdraw Advance Deposit</span>
-                </div>
-                <form action="{{ url_for('withdraw_deposit') }}" method="POST" style="margin: 0; display: flex; gap: 10px;">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="number" name="amount" min="1" step="1" max="{{ employee.deposit_balance or 0 }}" required placeholder="Amount to withdraw" style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background-color: var(--card-bg); color: var(--text);">
-                    <button type="submit" class="btn btn-danger btn-sm" {% if (employee.deposit_balance or 0) == 0 %}disabled{% endif %}>
-                        <i class="fa-solid fa-minus"></i> Withdraw
-                    </button>
-                </form>
-
-
-
             </div>
+            <form action="{{ url_for('add_deposit') }}" method="POST" class="space-y-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div>
+                    <label class="block text-gray-400 text-sm mb-2">Amount to Deposit</label>
+                    <input type="number" name="amount" min="1" step="0.01" required placeholder="Enter amount..." class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <button type="submit" class="w-full custom-gradient-btn text-white font-bold py-3 rounded-xl transition-colors mt-4">Proceed to Pay</button>
+            </form>
             {% endif %}
         </div>
     </div>
 
+    <div class="modal-overlay" id="acceptedBookingsModal">
+        <div class="bg-[#0f172a] border border-white/10 rounded-2xl p-8 w-full max-w-2xl relative shadow-2xl mx-4">
+            <button onclick="document.getElementById('acceptedBookingsModal').classList.remove('active')" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <iconify-icon icon="lucide:x" class="text-xl"></iconify-icon>
+            </button>
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2"><iconify-icon icon="lucide:history"></iconify-icon> Booking History</h3>
+            
+            <div class="max-h-[60vh] overflow-y-auto space-y-4 pr-2">
+                {% if service_requests %}
+                    {% set accepted_reqs = service_requests | selectattr('status', 'in', ['Accepted', 'Completed']) | list %}
+                    {% if accepted_reqs %}
+                        {% for req in accepted_reqs %}
+                        <div class="bg-slate-900/50 border border-white/5 rounded-xl p-4 flex justify-between items-center">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="font-bold text-white">Request #{{ req.id }}</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded border font-bold {% if req.status == 'Completed' %}bg-blue-500/10 text-blue-400 border-blue-500/20{% else %}bg-emerald-500/10 text-emerald-400 border-emerald-500/20{% endif %}">
+                                        {{ req.status }}
+                                    </span>
+                                </div>
+                                <p class="text-sm text-gray-400">Client: <span class="text-gray-300">{{ req.user_name }}</span> ({{ req.user_gmail }})</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-gray-500 text-center py-8">No accepted or completed bookings found.</p>
+                    {% endif %}
+                {% else %}
+                    <p class="text-gray-500 text-center py-8">No bookings found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
     <script>
-        function toggleWithdrawBalance() {
-            const modal = document.getElementById('withdrawBalanceModal');
-            modal.classList.toggle('active');
+        function toggleNotifications(event) {
+            if (event) event.stopPropagation();
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.classList.toggle('hidden');
         }
 
-        function toggleProfile() {
-
-            const modal = document.getElementById('profileModal');
-            modal.classList.toggle('active');
-        }
-
-        function toggleMessageHistory() {
-            const modal = document.getElementById('messageHistoryModal');
-            modal.classList.toggle('active');
-        }
-
-        function toggleWorkHistory() {
-            const modal = document.getElementById('workHistoryModal');
-            modal.classList.toggle('active');
-        }
-
-        function toggleUserDropdown(event) {
-            if (event) {
-                event.stopPropagation();
-            }
-            const dropdown = document.getElementById('userDropdown');
-            if (dropdown.style.display === 'none' || dropdown.style.display === '') {
-                dropdown.style.display = 'block';
-            } else {
-                dropdown.style.display = 'none';
-            }
-        }
-
-        // Close dropdown when clicking outside
+        // Close dropdowns and modals when clicking outside
         window.addEventListener('click', function(e) {
-            const dropdown = document.getElementById('userDropdown');
-            if (dropdown && dropdown.style.display === 'block') {
-                dropdown.style.display = 'none';
+            const notifWrapper = document.getElementById('notifWrapper');
+            const notifDropdown = document.getElementById('notificationDropdown');
+            if (notifWrapper && notifDropdown && !notifWrapper.contains(e.target)) {
+                notifDropdown.classList.add('hidden');
             }
         });
-
-        function toggleEditProfile() {
-            const modal = document.getElementById('editProfileModal');
-            modal.classList.toggle('active');
-        }
-
-        function toggleDeposit() {
-            const modal = document.getElementById('depositModal');
-            modal.classList.toggle('active');
-        }
-
-        // Close modals on backdrop click
+        
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', function(e) {
                 if (e.target === this) {
@@ -385,50 +539,13 @@
             });
         });
 
-        function toggleEditPassword() {
-            const input = document.getElementById('edit_password');
-            const icon = document.getElementById('editEyeIcon');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
-            } else {
-                input.type = 'password';
-                icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
-            }
-        }
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(() => {
+            document.querySelectorAll('.flash-message').forEach(msg => {
+                msg.style.opacity = '0';
+                setTimeout(() => msg.style.display = 'none', 500);
+            });
+        }, 5000);
     </script>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-    <!-- Withdraw Balance (UPI) Modal -->
-    <div class="modal-overlay" id="withdrawBalanceModal">
-        <div class="modal" style="max-width: 450px;">
-            <button class="modal-close" onclick="toggleWithdrawBalance()" id="close-withdraw-balance-modal">&times;</button>
-            <h3><i class="fa-solid fa-mobile-screen-button"></i> Withdraw Balance (UPI)</h3>
-            <p style="color: var(--text-muted); margin-bottom: 20px;">Transfer your earnings/refunds to your bank via UPI.</p>
-            
-            <div class="info-list" style="margin-bottom: 20px;">
-                <div class="info-row" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-                    <span class="label">Available Balance</span>
-                    <span class="value" style="font-weight: 700; color: var(--success);">₹{{ employee.balance or 0 }}</span>
-                </div>
-            </div>
-
-            <form action="{{ url_for('withdraw') }}" method="POST" class="modal-form">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="form-group">
-                    <label>UPI ID</label>
-                    <input type="text" name="upi" placeholder="example@upi" required pattern="^[\w.-]+@[\w.-]+$">
-                </div>
-                <div class="form-group">
-                    <label>Amount to Withdraw</label>
-                    <input type="number" name="amount" min="1" max="{{ employee.balance or 0 }}" required placeholder="Amount in ₹">
-                </div>
-                <button type="submit" class="btn btn-primary btn-block" {% if (employee.balance or 0) <= 0 %}disabled{% endif %}>
-                    <i class="fa-solid fa-paper-plane"></i> Submit Request
-                </button>
-            </form>
-        </div>
-    </div>
 </body>
-
-
 </html>

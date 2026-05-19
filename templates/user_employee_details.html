@@ -77,13 +77,14 @@
                             <span class="value" style="color: var(--text-secondary);">{{ employee.username }}</span>
                         </div>
                         <div class="profile-row" style="display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border);">
+                            <span class="label" style="font-weight: 600; color: var(--text-primary);"><i class="fa-solid fa-user-tag"></i> Employee Type</span>
+                            <span class="value" style="color: var(--text-secondary);">{{ employee.employee_type or 'Registered Professional' }}</span>
+                        </div>
+                        <div class="profile-row" style="display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border);">
                             <span class="label" style="font-weight: 600; color: var(--text-primary);"><i class="fa-solid fa-envelope"></i> Contact</span>
                             <span class="value" style="color: var(--text-secondary);">{{ employee.gmail }}</span>
                         </div>
-                        <div class="profile-row" style="display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border);">
-                            <span class="label" style="font-weight: 600; color: var(--text-primary);"><i class="fa-solid fa-tools"></i> Services Offered</span>
-                            <span class="value" style="color: var(--text-secondary);">{{ employee.work_details }}</span>
-                        </div>
+
                         <div class="profile-row" style="display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border);">
                             <span class="label" style="font-weight: 600; color: var(--text-primary);"><i class="fa-solid fa-shield-halved"></i> Security Deposit Maintained</span>
                             <span class="value" style="color: var(--success); font-weight: 600;">₹{{ employee.deposit_balance or 0.0 }}</span>
@@ -99,7 +100,9 @@
                             <span class="value" style="color: #f1c40f; font-weight: 600;">
                                 {% if employee.rating %}
                                     {% for i in range(employee.rating|int) %}⭐{% endfor %}
-                                    <span style="color: var(--text-muted); font-weight: 400; margin-left: 5px;">({{ "%.1f"|format(employee.rating) }} / {{ employee.rating_count }})</span>
+                                    <span style="color: var(--text-muted); font-weight: 500; font-size: 0.95em; margin-left: 5px;">
+                                        ({{ "%.1f"|format(employee.rating) }}/5) - {{ employee.rating_count }} reviews
+                                    </span>
                                 {% else %}
                                     <span style="color: var(--text-muted); font-weight: 400;">No reviews yet</span>
                                 {% endif %}

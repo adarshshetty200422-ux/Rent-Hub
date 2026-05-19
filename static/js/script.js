@@ -1,16 +1,18 @@
 // Rent Hub - Main Script
 document.addEventListener('DOMContentLoaded', function () {
-    // Auto-dismiss flash messages after 5 seconds
+    // Add close button to flash messages and handle dismissal
     const flashMessages = document.querySelectorAll('.flash-messages li');
     flashMessages.forEach(function (msg) {
-        setTimeout(function () {
-            msg.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        const closeBtn = document.createElement('span');
+        closeBtn.innerHTML = '&times;';
+        closeBtn.style.cssText = 'margin-left: auto; cursor: pointer; font-size: 1.2rem; font-weight: bold; opacity: 0.7;';
+        closeBtn.onclick = function() {
+            msg.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
             msg.style.opacity = '0';
             msg.style.transform = 'translateY(-10px)';
-            setTimeout(function () {
-                msg.remove();
-            }, 500);
-        }, 5000);
+            setTimeout(() => msg.remove(), 300);
+        };
+        msg.appendChild(closeBtn);
     });
 
     // Add subtle entrance animation to cards

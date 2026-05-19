@@ -1,88 +1,480 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="User login and registration portal for Rent Hub rental services.">
-    <title>User Login — Rent Hub</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Login — Rent Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <style>
+        :root {
+            --bg-color: #050511;
+            --panel-left: #0b1120;
+            --panel-right: #05070e;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --input-bg: #0f172a;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .auth-wrapper {
+            display: flex;
+            width: 900px;
+            height: 600px;
+            background: var(--panel-right);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        /* Left Panel */
+        .auth-left {
+            flex: 1;
+            background: linear-gradient(145deg, #0f172a, #0b1120);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 20px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: #3b82f6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-text {
+            margin-top: -40px;
+        }
+
+        .hero-text h1 {
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .hero-text h1 span {
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+
+        .hero-text p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.6;
+            max-width: 95%;
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .social-proof {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0,0,0,0.3);
+            padding: 8px 12px;
+            border-radius: 8px;
+            width: fit-content;
+        }
+
+        .avatars {
+            display: flex;
+        }
+
+        .avatars .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #1e293b;
+            border: 2px solid #0f172a;
+            margin-left: -8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .avatars .avatar:first-child { margin-left: 0; }
+
+        .social-proof p {
+            margin: 0;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Right Panel */
+        .auth-right {
+            flex: 1;
+            padding: 40px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: var(--panel-right);
+        }
+
+        .form-header {
+            margin-bottom: 24px;
+        }
+
+        .form-header h2 {
+            margin: 0 0 8px 0;
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .form-header p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .oauth-buttons {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .btn-oauth {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-oauth:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 10px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            letter-spacing: 1px;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .divider:not(:empty)::before { margin-right: 1em; }
+        .divider:not(:empty)::after { margin-left: 1em; }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i.icon-left {
+            position: absolute;
+            left: 16px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 12px 14px 12px 44px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: white;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .input-wrapper input:focus {
+            border-color: #4f46e5;
+        }
+
+        .forgot-link {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+        }
+
+        .options-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .options-row input[type="checkbox"] {
+            margin-right: 8px;
+            accent-color: #4f46e5;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            background: #4338ca;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .footer-links {
+            margin-top: 12px;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .footer-links a i {
+            color: #3b82f6;
+        }
+
+        .footer-links a:hover {
+            color: #3b82f6;
+        }
+
+        .flash-messages {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 15px 0;
+        }
+
+        .flash-messages li {
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .flash-messages li.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .flash-messages li.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+    </style>
 </head>
+<body>
 
-<body class="auth-body">
-    <div class="auth-container">
-        <div class="logo">
-            <div class="logo-icon">👤</div>
-            <div class="logo-text">Rent Hub</div>
+    <div class="auth-wrapper">
+        <!-- Left Panel -->
+        <div class="auth-left">
+            <a href="{{ url_for('index') }}" class="brand-logo">
+                <div class="brand-icon"><i class="fa-solid fa-house" style="font-size: 14px;"></i></div>
+                Rent Hub
+            </a>
+
+            <div class="hero-text">
+                <h1>Find your next<br><span>workspace</span> or<br>home with ease.</h1>
+                <p>Rent Hub provides a seamless platform for premium rentals, professional services, and workspace solutions tailored for your lifestyle.</p>
+            </div>
+
+            <div class="social-proof">
+                <div class="avatars">
+                    <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                    <div class="avatar" style="background: #3b82f6;"><i class="fa-solid fa-user-tie"></i></div>
+                    <div class="avatar" style="background: #8b5cf6;"><i class="fa-solid fa-building"></i></div>
+                </div>
+                <p>Join 5,000+ users already renting with us</p>
+            </div>
         </div>
 
-        <h2 id="formTitle">User Authentication</h2>
-        <p class="subtitle" id="formSubtitle">Sign in to access your rental dashboard</p>
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <ul class="flash-messages">
-            {% for category, message in messages %}
-            <li class="{{ category }}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-        {% endwith %}
-
-        <form id="authForm" method="POST" action="{{ url_for('user') }}" autocomplete="off" class="auth-form" enctype="multipart/form-data">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="usr_user" placeholder="Enter your username" required autocomplete="off">
+        <!-- Right Panel -->
+        <div class="auth-right">
+            <div class="form-header">
+                <h2 id="formTitle">Welcome Back</h2>
+                <p id="formSubtitle">Please enter your details to sign in.</p>
             </div>
 
-            <div id="registerFields" style="display: none;">
-                <div class="form-group" style="margin-bottom: 14px;">
-                    <label for="gmail">Gmail ID</label>
-                    <input type="email" id="gmail" name="gmail" placeholder="Enter Gmail ID">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <ul class="flash-messages">
+                {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% endwith %}
+
+
+
+            <form id="authForm" method="POST" action="{{ url_for('user') }}" autocomplete="off">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="form-group">
+                    <label>USERNAME</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-envelope icon-left"></i>
+                        <input type="text" id="username" name="usr_user" placeholder="name@company.com or username" required autocomplete="off">
+                    </div>
                 </div>
 
-            </div>
+                <div id="registerFields" style="display: none;">
+                    <div class="form-group">
+                        <label>EMAIL ADDRESS</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-at icon-left"></i>
+                            <input type="email" id="gmail" name="gmail" placeholder="Enter Gmail ID">
+                        </div>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <div class="input-group">
-                    <input type="password" id="password" name="usr_pass" placeholder="Enter your password" required autocomplete="new-password">
-                    <button type="button" class="toggle-password" onclick="togglePassword()">
-                        <svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                            <circle cx="12" cy="12" r="3"></circle>
-                        </svg>
-                    </button>
+                <div class="form-group">
+                    <label>
+                        PASSWORD
+                        <a href="{{ url_for('forgot_password') }}" class="forgot-link" id="forgotLink">Forgot password?</a>
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock icon-left"></i>
+                        <input type="password" id="password" name="usr_pass" placeholder="••••••••" required autocomplete="new-password">
+                        <button type="button" class="toggle-password" onclick="togglePassword()">
+                            <i class="fa-solid fa-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="options-row" id="rememberRow">
+                    <input type="checkbox" id="remember">
+                    <label for="remember" style="margin: 0; color: inherit; font-size: inherit; font-weight: normal; text-transform: none; letter-spacing: 0;">Stay logged in for 30 days</label>
+                </div>
+
+                <button type="submit" class="btn-primary" id="submitBtn">
+                    Sign In to Account <i class="fa-solid fa-arrow-right-long" style="font-size: 12px;"></i>
+                </button>
+            </form>
+
+            <div class="footer-text">
+                Don't have an account?
+                <div class="footer-links">
+                    <a onclick="toggleForm()" id="toggleBtn"><i class="fa-solid fa-user"></i> Register as User</a>
+                    <a href="{{ url_for('employee') }}?register=true"><i class="fa-solid fa-briefcase"></i> Register as Employee</a>
                 </div>
             </div>
-            <div id="forgotPasswordContainer" style="text-align: right; margin-bottom: 15px; margin-top: -10px;">
-                <a href="{{ url_for('forgot_password') }}" style="color: var(--primary); font-size: 0.85em; text-decoration: none;">Forgot Password?</a>
-            </div>
-
-            <button type="submit" id="submitBtn" class="btn btn-primary btn-block">Sign In</button>
-        </form>
-
-        <div class="auth-toggle">
-            <button type="button" onclick="handleToggleClick()" id="toggleBtn">Don't have an account? Register here</button>
-        </div>
-
-        <div style="text-align: center;">
-            <a href="{{ url_for('index') }}" class="back-link">← Return to Home</a>
         </div>
     </div>
 
     <script>
         let isLogin = true;
-
-        function handleToggleClick() {
-            if (isLogin) {
-                toggleForm();
-            } else {
-                window.location.href = "{{ url_for('index') }}";
-            }
-        }
 
         function toggleForm() {
             isLogin = !isLogin;
@@ -93,27 +485,35 @@
             const submitBtn = document.getElementById("submitBtn");
             const registerFields = document.getElementById("registerFields");
             const gmailInput = document.getElementById("gmail");
+            
+
+            const forgotLink = document.getElementById("forgotLink");
+            const rememberRow = document.getElementById("rememberRow");
 
             if (isLogin) {
-                formTitle.innerText = "User Authentication";
-                formSubtitle.innerText = "Sign in to access your rental dashboard";
-                toggleBtn.innerText = "Don't have an account? Register here";
-                submitBtn.innerText = "Sign In";
+                formTitle.innerText = "Welcome Back";
+                formSubtitle.innerText = "Please enter your details to sign in.";
+                toggleBtn.innerHTML = '<i class="fa-solid fa-user"></i> Register as User';
+                submitBtn.innerHTML = 'Sign In to Account <i class="fa-solid fa-arrow-right-long" style="font-size: 12px;"></i>';
                 authForm.action = "{{ url_for('user') }}";
-                if(registerFields) registerFields.style.display = "none";
-                if(gmailInput) gmailInput.removeAttribute("required");
-                const forgotContainer = document.getElementById("forgotPasswordContainer");
-                if(forgotContainer) forgotContainer.style.display = "block";
+                registerFields.style.display = "none";
+                gmailInput.removeAttribute("required");
+                
+
+                forgotLink.style.display = "block";
+                rememberRow.style.display = "flex";
             } else {
                 formTitle.innerText = "Create Account";
-                formSubtitle.innerText = "Register to start using Rent Hub";
-                toggleBtn.innerText = "Already have an account? Sign in";
-                submitBtn.innerText = "Create Account";
+                formSubtitle.innerText = "Register to start using Rent Hub.";
+                toggleBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Back to Sign In';
+                submitBtn.innerHTML = 'Create Account <i class="fa-solid fa-user-plus" style="font-size: 12px;"></i>';
                 authForm.action = "{{ url_for('register_user') }}";
-                if(registerFields) registerFields.style.display = "block";
-                if(gmailInput) gmailInput.setAttribute("required", "required");
-                const forgotContainer = document.getElementById("forgotPasswordContainer");
-                if(forgotContainer) forgotContainer.style.display = "none";
+                registerFields.style.display = "block";
+                gmailInput.setAttribute("required", "required");
+                
+
+                forgotLink.style.display = "none";
+                rememberRow.style.display = "none";
             }
 
             document.getElementById("username").value = "";
@@ -126,10 +526,10 @@
             const icon = document.getElementById('eyeIcon');
             if (input.type === 'password') {
                 input.type = 'text';
-                icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+                icon.className = 'fa-solid fa-eye-slash';
             } else {
                 input.type = 'password';
-                icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+                icon.className = 'fa-solid fa-eye';
             }
         }
 
@@ -138,8 +538,14 @@
             if (urlParams.get('register') === 'true') {
                 toggleForm();
             }
+            
+            setTimeout(() => {
+                const userField = document.getElementById('username');
+                const passField = document.getElementById('password');
+                if (userField) userField.value = '';
+                if (passField) passField.value = '';
+            }, 100);
         });
     </script>
 </body>
-
 </html>

@@ -70,22 +70,7 @@
                             <span class="badge badge-approved">{{ user.account_status }}</span>
                             {% endif %}
                         </div>
-                        <div class="profile-row" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
-                            <span class="label" style="color: var(--accent); font-weight: 600;">Saved Bank Details</span>
-                        </div>
 
-                        <div class="profile-row">
-                            <span class="label">Acc Holder</span>
-                            <span class="value">{{ user.bank_account_name or 'N/A' }}</span>
-                        </div>
-                        <div class="profile-row">
-                            <span class="label">Acc Number</span>
-                            <span class="value">{{ user.bank_account_number or 'N/A' }}</span>
-                        </div>
-                        <div class="profile-row">
-                            <span class="label">IFSC Code</span>
-                            <span class="value">{{ user.bank_ifsc or 'N/A' }}</span>
-                        </div>
                     </div>
                 </div>
             </div>

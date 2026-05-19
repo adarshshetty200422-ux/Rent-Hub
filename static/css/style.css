@@ -4,38 +4,38 @@
    CSS Custom Properties
    =========================== */
 :root {
-    --primary: #6C5CE7;
-    --primary-light: #A29BFE;
-    --primary-dark: #5A4BD1;
-    --accent: #00CEC9;
-    --accent-light: #55EFC4;
-    --danger: #FF6B6B;
-    --danger-dark: #EE5A24;
-    --warning: #FDCB6E;
-    --warning-dark: #E17055;
-    --success: #00B894;
-    --success-light: #55EFC4;
-    --surface: rgba(255, 255, 255, 0.04);
-    --surface-hover: rgba(255, 255, 255, 0.08);
-    --surface-active: rgba(255, 255, 255, 0.12);
+    --primary: #6366f1;
+    --primary-light: #818cf8;
+    --primary-dark: #4f46e5;
+    --accent: #22d3ee;
+    --accent-light: #67e8f9;
+    --danger: #f87171;
+    --danger-dark: #ef4444;
+    --warning: #fbbf24;
+    --warning-dark: #f59e0b;
+    --success: #34d399;
+    --success-light: #6ee7b7;
+    --surface: rgba(255, 255, 255, 0.03);
+    --surface-hover: rgba(255, 255, 255, 0.07);
+    --surface-active: rgba(255, 255, 255, 0.1);
     --border: rgba(255, 255, 255, 0.08);
-    --border-hover: rgba(255, 255, 255, 0.15);
-    --text-primary: #FFFFFF;
-    --text-secondary: rgba(255, 255, 255, 0.7);
-    --text-muted: rgba(255, 255, 255, 0.45);
-    --bg-dark: #0B0D17;
-    --bg-card: rgba(17, 19, 35, 0.8);
+    --border-hover: rgba(255, 255, 255, 0.16);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --bg-dark: #020617;
+    --bg-card: rgba(15, 23, 42, 0.6);
     --radius-sm: 8px;
     --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 20px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
     --radius-full: 9999px;
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.2);
-    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.3);
-    --shadow-glow: 0 0 30px rgba(108, 92, 231, 0.15);
-    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 /* ===========================
@@ -53,19 +53,18 @@ html {
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 18px;
-    line-height: 1.6;
+    font-size: 16px;
+    line-height: 1.5;
     background: var(--bg-dark);
-    background-image:
-        linear-gradient(rgba(11, 13, 23, 0.88), rgba(11, 13, 23, 0.92)),
-        url('../images/background.png');
-    background-size: cover;
-    background-position: center;
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(34, 211, 238, 0.05) 0px, transparent 50%);
     background-attachment: fixed;
     color: var(--text-primary);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
 }
 
 /* Animated background */
@@ -432,12 +431,13 @@ textarea {
 .btn-primary {
     background: linear-gradient(135deg, var(--primary), var(--primary-dark));
     color: white;
-    box-shadow: 0 4px 14px rgba(108, 92, 231, 0.35);
+    box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(108, 92, 231, 0.45);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.4);
+    background: linear-gradient(135deg, var(--primary-light), var(--primary));
 }
 
 .btn-accent {
@@ -782,19 +782,34 @@ body.dashboard-body {
 
 .stat-card {
     background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     padding: 24px;
     display: flex;
     align-items: center;
     gap: 18px;
-    transition: var(--transition);
+    transition: var(--transition-bounce);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent);
+    pointer-events: none;
 }
 
 .stat-card:hover {
-    border-color: var(--border-hover);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    border-color: var(--primary-light);
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
 }
 
 .stat-icon {
@@ -858,22 +873,27 @@ body.dashboard-body {
    =========================== */
 .card {
     background: var(--bg-card);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-xl);
     overflow: hidden;
     transition: var(--transition);
+    position: relative;
 }
 
 .card:hover {
     border-color: var(--border-hover);
+    box-shadow: var(--shadow-lg);
 }
 
 .card-header {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.02);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--border);
 }
 
 .card-title {
@@ -1444,9 +1464,54 @@ body.dashboard-body {
    =========================== */
 .employee-layout {
     display: grid;
-    grid-template-columns: 340px 1fr;
+    grid-template-columns: 340px 1fr 320px; /* Three columns: info, center, sidebar */
     gap: 28px;
     align-items: start;
+}
+
+.dashboard-sidebar {
+    position: sticky;
+    top: 92px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.messages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.message-item {
+    transition: var(--transition);
+    border: 1px solid var(--border);
+}
+
+.message-item:hover {
+    border-color: var(--primary-light);
+    background: var(--surface-hover);
+    transform: translateX(4px);
+}
+
+/* For smaller screens, adjust layout */
+@media (max-width: 1200px) {
+    .employee-layout {
+        grid-template-columns: 340px 1fr;
+    }
+    .dashboard-sidebar {
+        grid-column: span 2;
+        position: static;
+    }
+}
+
+@media (max-width: 900px) {
+    .employee-layout {
+        grid-template-columns: 1fr;
+    }
+    .dashboard-sidebar {
+        grid-column: span 1;
+    }
 }
 
 /* ===========================
@@ -1510,17 +1575,35 @@ body.dashboard-body {
 /* ===========================
    Responsive
    =========================== */
+@media (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
     .navbar {
         padding: 0 16px;
+        height: 60px;
+    }
+
+    .nav-brand-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 18px;
+    }
+
+    .nav-brand span {
+        font-size: 20px;
     }
 
     .dashboard-content {
-        padding: 20px 16px 40px;
+        padding: 16px 16px 80px;
     }
 
     .stats-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
 
     .employee-layout {
@@ -1536,11 +1619,13 @@ body.dashboard-body {
     }
 
     .auth-container {
-        padding: 36px 24px;
+        padding: 32px 20px;
+        border-radius: var(--radius-lg);
     }
 
     .services-grid {
         grid-template-columns: 1fr;
+        gap: 16px;
     }
 
     .nav-user-info {
@@ -1548,25 +1633,46 @@ body.dashboard-body {
     }
 
     .dashboard-welcome h1 {
-        font-size: 27px;
+        font-size: 24px;
+    }
+
+    .dashboard-welcome p {
+        font-size: 15px;
     }
 
     .check-messages-form {
         flex-direction: column;
     }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
 }
 
 @media (max-width: 480px) {
-    .stats-grid {
-        grid-template-columns: 1fr;
+    .navbar {
+        padding: 0 12px;
     }
 
-    .pending-grid {
-        grid-template-columns: 1fr;
+    .nav-actions {
+        gap: 8px;
     }
 
-    .table-actions {
-        flex-direction: column;
+    .btn-nav-logout span, .btn-nav-profile span {
+        display: none;
+    }
+
+    .btn-nav-logout, .btn-nav-profile {
+        padding: 8px;
+    }
+
+    .stat-card {
+        padding: 16px;
+    }
+
+    .stat-value {
+        font-size: 20px;
     }
 }
 
@@ -1618,103 +1724,3 @@ body.dashboard-body {
 .text-success { color: var(--success); }
 .text-danger { color: var(--danger); }
 .text-muted { color: var(--text-muted); }
-/* ===========================
-   Withdrawal Slider Styles
-   =========================== */
-.withdrawal-slider-container {
-    margin-top: 20px;
-    position: relative;
-}
-
-.withdrawal-slider {
-    display: flex;
-    overflow-x: auto;
-    gap: 20px;
-    padding: 10px 5px 25px;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: thin;
-    scrollbar-color: var(--primary) var(--surface);
-}
-
-.withdrawal-slider::-webkit-scrollbar {
-    height: 6px;
-}
-
-.withdrawal-slider::-webkit-scrollbar-track {
-    background: var(--surface);
-    border-radius: 10px;
-}
-
-.withdrawal-slider::-webkit-scrollbar-thumb {
-    background: var(--primary);
-    border-radius: 10px;
-}
-
-.withdrawal-card {
-    flex: 0 0 300px;
-    scroll-snap-align: start;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 20px;
-    transition: var(--transition);
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-}
-
-.withdrawal-card:hover {
-    border-color: var(--primary-light);
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-md), 0 0 15px rgba(108, 92, 231, 0.1);
-}
-
-.withdrawal-card.selected {
-    border-color: var(--accent);
-    box-shadow: 0 0 20px rgba(0, 206, 201, 0.2);
-}
-
-.withdrawal-card .status-badge {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    font-size: 12px;
-    padding: 4px 10px;
-    border-radius: var(--radius-full);
-}
-
-.withdrawal-card .amount {
-    font-size: 24px;
-    font-weight: 800;
-    color: var(--accent);
-    margin-bottom: 10px;
-    display: block;
-}
-
-.withdrawal-card .date {
-    font-size: 14px;
-    color: var(--text-muted);
-    margin-bottom: 15px;
-    display: block;
-}
-
-.withdrawal-card .bank-info {
-    font-size: 15px;
-    color: var(--text-secondary);
-    background: var(--surface);
-    padding: 10px;
-    border-radius: var(--radius-md);
-    margin-bottom: 15px;
-    min-height: 60px;
-}
-
-.withdrawal-card .actions {
-    display: flex;
-    gap: 10px;
-}
-
-@media (max-width: 768px) {
-    .withdrawal-card {
-        flex: 0 0 85%;
-    }
-}

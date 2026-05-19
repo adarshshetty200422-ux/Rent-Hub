@@ -1,5 +1,7 @@
+"""
+Utility script to inspect the database schema and users table.
+"""
 import sqlite3
-import pprint
 
 conn = sqlite3.connect('database.db')
 cursor = conn.cursor()
@@ -10,6 +12,6 @@ for name, sql in tables:
     print(f"Table: {name}")
     print(f"SQL: {sql}")
     print("-" * 50)
-    
+
 cursor.execute("SELECT * FROM users")
 print("Users:", cursor.fetchall())

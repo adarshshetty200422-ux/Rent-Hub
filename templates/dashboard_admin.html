@@ -1,396 +1,615 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Admin dashboard for Rent Hub - manage users, employees, and service requests.">
-    <title>Admin Dashboard — Rent Hub</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <title>Rent Hub | Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .sidebar-link.active {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            border-right: 3px solid #3b82f6;
+        }
+        .stat-glow-blue { box-shadow: 0 0 30px -10px rgba(59, 130, 246, 0.2); }
+        .stat-glow-purple { box-shadow: 0 0 30px -10px rgba(168, 85, 247, 0.2); }
+        .stat-glow-amber { box-shadow: 0 0 30px -10px rgba(245, 158, 11, 0.2); }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #020617;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+    </style>
 </head>
-
-<body class="dashboard-body">
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="nav-brand">
-            <div class="nav-brand-icon">🏠</div>
-            <span>Rent Hub</span>
-        </div>
-        <div class="nav-actions">
-            <div class="nav-user-info" onclick="toggleProfile()" style="cursor: pointer;" id="profile-btn">
-                    <div class="nav-avatar">{{ session.get('username', 'A')[0] }}</div>
-                <span class="nav-username">{{ session.get('username') }}</span>
-                <span class="nav-role">ADMIN</span>
-            </div>
-            <a href="{{ url_for('logout') }}" class="btn-nav-logout" id="logout-btn">
-                <i class="fa-solid fa-right-from-bracket"></i> Logout
-            </a>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="dashboard-content">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <ul class="flash-messages">
-            {% for category, message in messages %}
-            <li class="{{ category }}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-        {% endwith %}
-
-        <div class="dashboard-welcome">
-            <h1>Welcome back, <span class="highlight">{{ session.get('username') }}</span></h1>
-            <p>Full administrative control panel. Manage users, employees, and requests.</p>
-        </div>
-
-        <!-- Stats -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon purple"><i class="fa-solid fa-users"></i></div>
-                <div>
-                    <div class="stat-label">Total Users</div>
-                    <div class="stat-value">{{ users|length }}</div>
+<body class="overflow-x-hidden">
+    <div class="min-h-screen flex">
+        
+        <!-- Sidebar -->
+        <aside class="w-72 bg-[#020617] border-r border-white/5 flex flex-col fixed h-full z-50">
+            <div class="p-6 flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <iconify-icon icon="lucide:shield-check" class="text-white text-xl"></iconify-icon>
                 </div>
+                <span class="text-xl font-bold tracking-tight text-white">Rent Hub Admin</span>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon teal"><i class="fa-solid fa-user-tie"></i></div>
-                <div>
-                    <div class="stat-label">Employees</div>
-                    <div class="stat-value">{{ employees|length }}</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon amber"><i class="fa-solid fa-clock"></i></div>
-                <div>
-                    <div class="stat-label">Pending</div>
-                    <div class="stat-value">{{ pending_employees|length }}</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Accordion Sections -->
-        <!-- Users -->
-        <div class="section">
-            <div class="card accordion-card">
-                <div class="card-header accordion-header" onclick="toggleAccordion('users-content', this)" id="users-toggle">
-                    <div class="card-title">
-                        <span class="icon"><i class="fa-solid fa-users"></i></span> Users
-                        <span class="badge badge-approved">{{ users|length }} registered</span>
+            <nav class="flex-1 px-4 mt-4 space-y-1">
+                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-4 mb-3">Main Menu</p>
+                <a href="#" class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all hover:bg-white/5">
+                    <iconify-icon icon="lucide:layout-dashboard" class="text-lg"></iconify-icon>
+                    Dashboard
+                </a>
+                <a href="#users" onclick="document.getElementById('users-content').classList.remove('hidden');" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-gray-400 transition-all hover:text-white hover:bg-white/5">
+                    <iconify-icon icon="lucide:users" class="text-lg"></iconify-icon>
+                    User Management
+                </a>
+                <a href="#employees" onclick="document.getElementById('emp-content').classList.remove('hidden');" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-gray-400 transition-all hover:text-white hover:bg-white/5">
+                    <iconify-icon icon="lucide:briefcase" class="text-lg"></iconify-icon>
+                    Employees
+                </a>
+                <a href="#approvals" onclick="document.getElementById('pending-content').classList.remove('hidden');" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-gray-400 transition-all hover:text-white hover:bg-white/5">
+                    <iconify-icon icon="lucide:layers" class="text-lg"></iconify-icon>
+                    Approvals
+                </a>
+
+
+            </nav>
+
+
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 ml-72">
+            <!-- Top Header -->
+            <header class="sticky top-0 z-40 bg-[#020617]/80 backdrop-blur-md border-b border-white/5 px-8 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-full border border-emerald-500/20 flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                        System Operational
                     </div>
-                    <i class="fa-solid fa-chevron-down accordion-arrow"></i>
                 </div>
-                <div class="accordion-content" id="users-content">
-                    <div class="card-body no-pad">
-                        <div style="overflow-x: auto;">
-                            <table class="data-table" id="users-table">
-                                <thead>
-                                    <tr>
-                                        <th>Avatar</th>
-                                        <th>ID</th>
-                                        <th>Username</th>
-                                        <th>Account Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% if users %}
-                                    {% for user in users %}
-                                    <tr>
-                                        <td>
-                                                <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">{{ user.username[0] | upper }}</div>
-                                        </td>
-                                        <td>{{ user.id }}</td>
-                                        <td>
-                                            <a href="{{ url_for('admin_user_details', user_id=user.id) }}" class="user-link">
-                                                {{ user.username }}
-                                            </a>
-                                        </td>
-                                        <td>
-                                            {% if user.account_status == 'blocked' %}
-                                            <span class="badge badge-blocked" style="color: var(--danger); background: rgba(255, 107, 107, 0.15); padding: 4px 10px; border-radius: 999px; font-size: 13px;">Blocked</span>
-                                            {% else %}
-                                            <span class="badge badge-approved" style="color: var(--success); background: rgba(0, 184, 148, 0.15); padding: 4px 10px; border-radius: 999px; font-size: 13px;">Active</span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                    {% else %}
-                                    <tr>
-                                        <td colspan="2">
-                                            <div class="empty-state">
-                                                <div class="empty-icon">👤</div>
-                                                <p>No users found.</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% endif %}
-                                </tbody>
-                            </table>
+
+                <div class="flex items-center gap-6">
+                    <div class="relative" id="adminNotifWrapper">
+                        <button onclick="toggleAdminNotification(event)" class="relative w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors" title="Notifications">
+                            <iconify-icon icon="lucide:bell" class="text-lg text-gray-400"></iconify-icon>
+                            <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
+                        </button>
+                        
+                        <div id="adminNotificationDropdown" class="hidden absolute right-0 mt-2 w-80 bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                            <div class="p-4 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                                <h4 class="font-bold text-white text-sm">Notifications</h4>
+                                <span class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded-md font-bold uppercase tracking-wider">1 New</span>
+                            </div>
+                            <div class="p-2 max-h-80 overflow-y-auto">
+                                <div class="p-3 hover:bg-white/5 rounded-xl transition-colors flex gap-3 cursor-pointer">
+                                    <div class="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                                        <iconify-icon icon="lucide:info" class="text-cyan-400"></iconify-icon>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-300 leading-snug">Welcome back! You have <span class="font-bold text-white">{{ pending_employees|length }} pending approvals</span> and scheduled maintenance.</p>
+                                        <p class="text-xs text-gray-500 mt-1">Just now</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Employees -->
-        <div class="section">
-            <div class="card accordion-card">
-                <div class="card-header accordion-header" onclick="toggleAccordion('employees-content', this)" id="employees-toggle">
-                    <div class="card-title">
-                        <span class="icon"><i class="fa-solid fa-user-tie"></i></span> Employees
-                        <span class="badge badge-approved">{{ employees|length }} active</span>
+
+
+                    <div class="h-8 w-px bg-white/10 mx-2"></div>
+
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-1.5 rounded-xl transition-colors" onclick="document.getElementById('profileModal').classList.remove('hidden')">
+                            <div class="flex flex-col items-end">
+                                <span class="text-sm font-bold text-white leading-none">{{ session.get('username') }}</span>
+                                <span class="text-[10px] font-bold bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded mt-1 uppercase tracking-tighter border border-blue-500/20">Admin</span>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-sm font-extrabold shadow-lg shadow-blue-500/20">
+                                {{ session.get('username', 'A')[0] | upper }}
+                            </div>
+                        </div>
+                        <a href="{{ url_for('logout') }}" class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500/20 transition-all border border-rose-500/20" title="Logout">
+                            <iconify-icon icon="lucide:log-out" class="text-lg"></iconify-icon>
+                        </a>
                     </div>
-                    <i class="fa-solid fa-chevron-down accordion-arrow"></i>
                 </div>
-                <div class="accordion-content" id="employees-content">
-                    <div class="card-body no-pad">
-                        <div style="overflow-x: auto;">
-                            <table class="data-table" id="employees-table">
-                                <thead>
-                                    <tr>
-                                        <th>Avatar</th>
-                                        <th>ID</th>
-                                        <th>Username</th>
-                                        <th>Account Status</th>
-                                        <th>Availability</th>
-                                        <th>Online Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% if employees %}
-                                    {% for emp in employees %}
-                                    <tr>
-                                        <td>
-                                                <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">{{ emp.username[0] | upper }}</div>
-                                        </td>
-                                        <td>{{ emp.id }}</td>
-                                        <td>
-                                            <a href="{{ url_for('admin_employee_details', emp_id=emp.id) }}" class="user-link">
-                                                {{ emp.username }}
-                                            </a>
-                                        </td>
-                                        <td>
-                                            {% if emp.account_status == 'blocked' %}
-                                            <span class="badge badge-blocked" style="color: var(--danger); background: rgba(255, 107, 107, 0.15); padding: 4px 10px; border-radius: 999px; font-size: 13px;">Blocked</span>
-                                            {% else %}
-                                            <span class="badge badge-approved" style="color: var(--success); background: rgba(0, 184, 148, 0.15); padding: 4px 10px; border-radius: 999px; font-size: 13px;">Active</span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="{{ 'text-success' if emp.availability == 'AVAILABLE' else 'text-muted' }}" style="font-weight: 500;">
-                                            {{ emp.availability or 'NOT SPECIFIED' }}
-                                        </td>
-                                        <td>
-                                            {% if emp.is_online %}
-                                            <span style="color: var(--success); font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                                                <span style="width: 8px; height: 8px; background: var(--success); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px var(--success);"></span>
-                                                Online
-                                            </span>
-                                            {% else %}
-                                            <span style="color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                                                <span style="width: 8px; height: 8px; background: var(--text-muted); border-radius: 50%; display: inline-block;"></span>
-                                                Offline
-                                            </span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                    {% else %}
-                                    <tr>
-                                        <td colspan="2">
-                                            <div class="empty-state">
-                                                <div class="empty-icon">👷</div>
-                                                <p>No employees found.</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% endif %}
-                                </tbody>
-                            </table>
+            </header>
+
+            <!-- Content Container -->
+            <div class="p-8">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="mb-8 space-y-4">
+                    {% for category, message in messages %}
+                    <div class="flash-message bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 flex items-center justify-between transition-all duration-500">
+                        <div class="flex items-center gap-3">
+                            <iconify-icon icon="lucide:bell" class="text-blue-400 text-xl"></iconify-icon>
+                            <p class="text-blue-100 text-sm">{{ message }}</p>
+                        </div>
+                        <button class="text-blue-400 hover:text-blue-200" onclick="this.parentElement.style.display='none'">
+                            <iconify-icon icon="lucide:x" class="text-lg"></iconify-icon>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <!-- Notification Banner -->
+                <div class="bg-cyan-500/5 border border-cyan-500/20 rounded-2xl p-4 mb-8 flex items-center justify-between transition-all duration-500" id="welcomeAlert">
+                    <div class="flex items-center gap-3">
+                        <iconify-icon icon="lucide:info" class="text-cyan-400 text-xl"></iconify-icon>
+                        <p class="text-cyan-100 text-sm">Welcome back, <span class="font-bold">{{ session.get('username') }}</span>. You have <span class="font-bold">{{ pending_employees|length }} pending approvals</span> and 1 server maintenance scheduled for 02:00 AM.</p>
+                    </div>
+                    <button class="text-cyan-400 hover:text-cyan-200" onclick="document.getElementById('welcomeAlert').style.display='none'">
+                        <iconify-icon icon="lucide:x" class="text-lg"></iconify-icon>
+                    </button>
+                </div>
+
+                <div class="flex items-end justify-between mb-8">
+                    <div>
+                        <h1 class="text-3xl font-extrabold tracking-tight mb-2">Administrative <span class="text-blue-500">Control Panel</span></h1>
+                        <p class="text-gray-400">Full system oversight. Manage users, employees, and rental requests.</p>
+                    </div>
+                    <div class="flex gap-3">
+
+                        <button onclick="document.getElementById('profileModal').classList.remove('hidden')" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition-all">
+                            <iconify-icon icon="lucide:user-cog"></iconify-icon>
+                            Admin Profile
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="glass-card p-6 rounded-[2rem] stat-glow-blue">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="p-3 bg-blue-500/10 rounded-2xl">
+                                <iconify-icon icon="lucide:users-2" class="text-blue-500 text-2xl"></iconify-icon>
+                            </div>
+                            <span class="text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-lg">+ ONLINE</span>
+                        </div>
+                        <p class="text-gray-500 text-sm font-semibold tracking-wide uppercase">Total Users</p>
+                        <h3 class="text-4xl font-extrabold mt-1">{{ users|length }}</h3>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-[2rem] stat-glow-purple">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="p-3 bg-purple-500/10 rounded-2xl">
+                                <iconify-icon icon="lucide:briefcase" class="text-purple-500 text-2xl"></iconify-icon>
+                            </div>
+                            <span class="text-[10px] font-bold text-purple-400 bg-purple-400/10 px-2 py-1 rounded-lg">+ ACTIVE</span>
+                        </div>
+                        <p class="text-gray-500 text-sm font-semibold tracking-wide uppercase">Employees</p>
+                        <h3 class="text-4xl font-extrabold mt-1">{{ employees|length }}</h3>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-[2rem] stat-glow-amber">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="p-3 bg-amber-500/10 rounded-2xl">
+                                <iconify-icon icon="lucide:clock-3" class="text-amber-500 text-2xl"></iconify-icon>
+                            </div>
+                            <span class="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-1 rounded-lg tracking-tighter uppercase">WAITING</span>
+                        </div>
+                        <p class="text-gray-500 text-sm font-semibold tracking-wide uppercase">Pending Approvals</p>
+                        <h3 class="text-4xl font-extrabold mt-1">{{ pending_employees|length }}</h3>
+                    </div>
+                </div>
+
+                <!-- Data Sections -->
+                <div class="space-y-6">
+                    
+                    <!-- Registered Users Section -->
+                    <div class="glass-card rounded-[2.5rem] overflow-hidden" id="users">
+                        <button class="w-full flex items-center justify-between p-8 hover:bg-white/5 transition-colors group" onclick="document.getElementById('users-content').classList.toggle('hidden')">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 bg-blue-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                                    <iconify-icon icon="lucide:user-circle" class="text-blue-500 text-2xl"></iconify-icon>
+                                </div>
+                                <div class="text-left">
+                                    <h3 class="text-xl font-bold">Registered Users</h3>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                        <p class="text-xs text-gray-500">{{ users|length }} Total Registered Accounts</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <iconify-icon icon="lucide:chevron-down" class="text-2xl text-gray-500 group-hover:text-blue-500 transition-colors"></iconify-icon>
+                        </button>
+                        
+                        <div class="px-8 pb-8 pt-2 block" id="users-content">
+                            <div class="flex items-center justify-between mb-6">
+                                <div class="relative w-full max-w-md">
+                                    <iconify-icon icon="lucide:search" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></iconify-icon>
+                                    <input type="text" id="user-search" onkeyup="filterTable('user-search', 'users-table')" placeholder="Search by name or ID..." class="w-full bg-slate-900 border border-white/10 rounded-xl py-2 pl-12 pr-4 text-sm focus:outline-none focus:border-blue-500/50 text-white">
+                                </div>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left" id="users-table">
+                                    <thead>
+                                        <tr class="text-gray-500 text-[10px] font-bold uppercase tracking-widest border-b border-white/5">
+                                            <th class="px-4 py-4">User Name</th>
+                                            <th class="px-4 py-4">ID</th>
+                                            <th class="px-4 py-4">Role</th>
+                                            <th class="px-4 py-4">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-white/5">
+                                        {% if users %}
+                                            {% for user in users %}
+                                            <tr class="hover:bg-white/[0.02] transition-colors">
+                                                <td class="px-4 py-5">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-xs border border-white/5">{{ user.username[0] | upper }}</div>
+                                                        <a href="{{ url_for('admin_user_details', user_id=user.id) }}" class="font-bold text-sm hover:text-blue-400 transition-colors">{{ user.username }}</a>
+                                                    </div>
+                                                </td>
+                                                <td class="px-4 py-5 text-sm text-gray-400 font-mono">#USR-{{ '%04d' % user.id }}</td>
+                                                <td class="px-4 py-5">
+                                                    <span class="text-[10px] font-bold bg-white/5 text-gray-300 px-3 py-1 rounded-full border border-white/10">Regular User</span>
+                                                </td>
+                                                <td class="px-4 py-5">
+                                                    {% if user.account_status == 'blocked' %}
+                                                    <span class="flex items-center gap-2 text-rose-400 text-xs font-bold">
+                                                        <iconify-icon icon="lucide:ban" class="text-sm"></iconify-icon> Blocked
+                                                    </span>
+                                                    {% else %}
+                                                    <span class="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+                                                        <iconify-icon icon="lucide:check-circle" class="text-sm"></iconify-icon> Active
+                                                    </span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="4" class="px-4 py-8 text-center text-gray-500">No registered users found.</td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="mt-6 flex items-center justify-between">
+                                <p class="text-xs text-gray-500">Showing {{ users|length }} users</p>
+                                <div class="flex gap-2">
+                                    <button class="px-4 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-bold opacity-50 cursor-not-allowed">Previous</button>
+                                    <button class="px-4 py-1.5 rounded-lg bg-blue-600 text-xs font-bold text-white shadow-lg shadow-blue-600/10">Next Page</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
 
+                    <!-- Active Employees Section -->
+                    <div class="glass-card rounded-[2.5rem] overflow-hidden" id="employees">
+                        <button class="w-full flex items-center justify-between p-8 hover:bg-white/5 transition-colors group" onclick="document.getElementById('emp-content').classList.toggle('hidden')">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 bg-emerald-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                                    <iconify-icon icon="lucide:briefcase" class="text-emerald-500 text-2xl"></iconify-icon>
+                                </div>
+                                <div class="text-left">
+                                    <h3 class="text-xl font-bold">Active Employees</h3>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        <p class="text-xs text-gray-500">{{ employees|length }} Professionals currently verified</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <iconify-icon icon="lucide:chevron-down" class="text-2xl text-gray-500 group-hover:text-emerald-500 transition-colors"></iconify-icon>
+                        </button>
+                        
+                        <div class="hidden px-8 pb-8 pt-2" id="emp-content">
+                            <div class="flex items-center justify-between mb-6">
+                                <div class="relative w-full max-w-md">
+                                    <iconify-icon icon="lucide:search" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></iconify-icon>
+                                    <input type="text" id="emp-search" onkeyup="filterTable('emp-search', 'emp-table')" placeholder="Search by name, type or ID..." class="w-full bg-slate-900 border border-white/10 rounded-xl py-2 pl-12 pr-4 text-sm focus:outline-none focus:border-blue-500/50 text-white">
+                                </div>
+                            </div>
 
-
-        <!-- Pending Withdrawal Requests -->
-        <div class="section">
-            <div class="card accordion-card">
-                <div class="card-header accordion-header" onclick="toggleAccordion('withdraw-content', this)" id="withdraw-toggle">
-                    <div class="card-title">
-                        <span class="icon"><i class="fa-solid fa-money-bill-transfer"></i></span> Withdrawal Requests
-                        {% if withdrawal_requests %}
-                        <span class="badge badge-pending">{{ withdrawal_requests|length }} pending</span>
-                        {% endif %}
-                    </div>
-                    <i class="fa-solid fa-chevron-down accordion-arrow"></i>
-                </div>
-                <div class="accordion-content" id="withdraw-content">
-                    <div class="card-body no-pad">
-                        <div style="overflow-x: auto;">
-                            <table class="data-table" id="withdraw-table">
-                                <thead>
-                                    <tr>
-                                        <th>Avatar</th>
-                                        <th>ID</th>
-                                        <th>Username</th>
-                                        <th>Role / Contact</th>
-                                        <th>Amount</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% if withdrawal_requests %}
-                                    {% for req in withdrawal_requests %}
-                                    <tr>
-                                        <td>
-                                                <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">{{ req.username[0] | upper }}</div>
-                                        </td>
-                                        <td>{{ req.id }}</td>
-                                        <td style="font-weight: 600;">{{ req.username }}</td>
-                                        <td>{{ req.role|capitalize }}<br><small style="color: var(--text-muted);">{{ req.gmail or 'N/A' }}</small></td>
-                                        <td style="color: var(--danger); font-weight: bold;">₹{{ req.amount }}</td>
-                                        <td>
-                                            <div class="table-actions">
-                                                <form action="{{ url_for('admin_handle_withdrawal', req_id=req.id, action='approve') }}" method="POST">
-                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                    <button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-check"></i> Approve</button>
-                                                </form>
-                                                <form action="{{ url_for('admin_handle_withdrawal', req_id=req.id, action='reject') }}" method="POST">
-                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                    <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-xmark"></i> Reject</button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                    {% else %}
-                                    <tr>
-                                        <td colspan="5">
-                                            <div class="empty-state">
-                                                <div class="empty-icon">💸</div>
-                                                <p>No withdrawal requests right now.</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% endif %}
-                                </tbody>
-                            </table>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left" id="emp-table">
+                                    <thead>
+                                        <tr class="text-gray-500 text-[10px] font-bold uppercase tracking-widest border-b border-white/5">
+                                            <th class="px-4 py-4">Employee Name</th>
+                                            <th class="px-4 py-4">Type</th>
+                                            <th class="px-4 py-4">Availability</th>
+                                            <th class="px-4 py-4">Rating</th>
+                                            <th class="px-4 py-4">Jobs</th>
+                                            <th class="px-4 py-4">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-white/5">
+                                        {% if employees %}
+                                            {% for emp in employees %}
+                                            <tr class="hover:bg-white/[0.02] transition-colors">
+                                                <td class="px-4 py-5">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="w-10 h-10 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs border border-purple-500/10">{{ emp.username[0] | upper }}</div>
+                                                        <a href="{{ url_for('admin_employee_details', emp_id=emp.id) }}" class="font-bold text-sm hover:text-purple-400 transition-colors">{{ emp.username }}</a>
+                                                    </div>
+                                                </td>
+                                                <td class="px-4 py-5 text-sm text-gray-400">{{ emp.employee_type or 'Registered Professional' }}</td>
+                                                <td class="px-4 py-5">
+                                                    {% if emp.availability == 'AVAILABLE' %}
+                                                    <span class="text-[10px] font-bold bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full border border-emerald-500/20">AVAILABLE</span>
+                                                    {% else %}
+                                                    <span class="text-[10px] font-bold bg-amber-500/10 text-amber-400 px-3 py-1 rounded-full border border-amber-500/20">{{ emp.availability or 'NOT SPECIFIED' }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="px-4 py-5 text-amber-400 font-bold text-sm">
+                                                    <iconify-icon icon="lucide:star" class="inline-block mr-1"></iconify-icon>{{ "%.1f"|format(emp.rating or 0.0) }}
+                                                </td>
+                                                <td class="px-4 py-5 text-white font-bold">{{ emp.total_work or 0 }}</td>
+                                                <td class="px-4 py-5">
+                                                    {% if emp.is_online %}
+                                                    <span class="flex items-center gap-2 text-emerald-400 text-xs font-bold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Online</span>
+                                                    {% else %}
+                                                    <span class="flex items-center gap-2 text-gray-400 text-xs font-bold"><span class="w-1.5 h-1.5 rounded-full bg-gray-500"></span> Offline</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="6" class="px-4 py-8 text-center text-gray-500">No employees found.</td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="mt-6 flex items-center justify-between">
+                                <p class="text-xs text-gray-500">Showing {{ employees|length }} employees</p>
+                                <div class="flex gap-2">
+                                    <button class="px-4 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-bold opacity-50 cursor-not-allowed">Previous</button>
+                                    <button class="px-4 py-1.5 rounded-lg bg-blue-600 text-xs font-bold text-white shadow-lg shadow-blue-600/10">Next Page</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Pending Service Requests -->
+                    <div class="glass-card rounded-[2.5rem] overflow-hidden" id="approvals">
+                        <button class="w-full flex items-center justify-between p-8 hover:bg-white/5 transition-colors group" onclick="document.getElementById('pending-content').classList.toggle('hidden')">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 bg-amber-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                                    <iconify-icon icon="lucide:clock-4" class="text-amber-500 text-2xl"></iconify-icon>
+                                </div>
+                                <div class="text-left">
+                                    <h3 class="text-xl font-bold">Service Approvals</h3>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                        <p class="text-xs text-gray-500">{{ pending_employees|length }} critical requests awaiting review</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <iconify-icon icon="lucide:external-link" class="text-xl text-gray-500 hover:text-amber-500 transition-colors"></iconify-icon>
+                        </button>
+
+                        <div class="hidden px-8 pb-8 pt-2" id="pending-content">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead>
+                                        <tr class="text-gray-500 text-[10px] font-bold uppercase tracking-widest border-b border-white/5">
+                                            <th class="px-4 py-4">Applicant</th>
+                                            <th class="px-4 py-4">Email</th>
+                                            <th class="px-4 py-4">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-white/5">
+                                        {% if pending_employees %}
+                                            {% for emp in pending_employees %}
+                                            <tr class="hover:bg-white/[0.02] transition-colors">
+                                                <td class="px-4 py-5">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="w-10 h-10 rounded-full bg-amber-500/20 text-amber-500 flex items-center justify-center font-bold text-xs border border-amber-500/10">{{ emp.username[0] | upper }}</div>
+                                                        <span class="font-bold text-sm">{{ emp.username }}</span>
+                                                    </div>
+                                                </td>
+                                                <td class="px-4 py-5 text-sm text-gray-400">{{ emp.gmail }}</td>
+                                                <td class="px-4 py-5">
+                                                    <div class="flex items-center gap-2">
+                                                        <form action="{{ url_for('admin_accept_employee', emp_id=emp.id) }}" method="POST" class="m-0">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <button type="submit" class="px-4 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-xs font-bold hover:bg-emerald-500 hover:text-white transition-all">Approve</button>
+                                                        </form>
+                                                        <form action="{{ url_for('admin_reject_employee', emp_id=emp.id) }}" method="POST" class="m-0">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <button type="submit" class="px-4 py-1.5 rounded-lg bg-rose-500/10 text-rose-500 border border-rose-500/20 text-xs font-bold hover:bg-rose-500 hover:text-white transition-all">Reject</button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="3" class="px-4 py-8 text-center text-gray-500">No pending approvals.</td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
-        </div>
 
-
-
-        </div>
-
-
-
+            <!-- Footer -->
+            <footer class="p-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 mt-8">
+                <p class="text-[10px] font-bold text-gray-600 uppercase tracking-widest">© 2026 Rent Hub Core Enterprise Edition v8.2.1</p>
+                <div class="flex gap-6">
+                    <a href="#" class="text-[10px] font-bold text-gray-500 hover:text-white uppercase tracking-widest">Documentation</a>
+                    <a href="#" class="text-[10px] font-bold text-gray-500 hover:text-white uppercase tracking-widest">API Status</a>
+                    <a href="#" class="text-[10px] font-bold text-gray-500 hover:text-white uppercase tracking-widest">Security Center</a>
+                </div>
+            </footer>
+        </main>
     </div>
 
-    <!-- Profile Modal -->
-    <div class="modal-overlay" id="profileModal">
-        <div class="modal">
-            <button class="modal-close" onclick="toggleProfile()" id="close-profile-modal">&times;</button>
-            <h3><i class="fa-solid fa-user-gear"></i> Admin Profile</h3>
 
-            <div class="profile-details">
-                <div class="profile-header" style="text-align: center; margin-bottom: 20px;">
-                        <div class="profile-avatar" style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-light), var(--primary)); display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: bold; color: white; margin: 0 auto 10px;">{{ admin_info.username[0] | upper }}</div>
-                </div>
-                <div class="profile-row">
-                    <span class="label">Username</span>
-                    <span class="value">{{ admin_info.username }}</span>
-                </div>
-                <div class="profile-row">
-                    <span class="label">Role</span>
-                    <span class="value" style="color: var(--primary-light);">Administrator</span>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="bg-[#0f172a] border border-white/10 rounded-2xl p-8 w-full max-w-md relative shadow-2xl">
+            <button onclick="document.getElementById('profileModal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <iconify-icon icon="lucide:x" class="text-xl"></iconify-icon>
+            </button>
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2"><iconify-icon icon="lucide:user-cog"></iconify-icon> Admin Profile</h3>
+            
+            <div class="flex flex-col items-center mb-6">
+                <div class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-4xl font-bold text-white shadow-lg mb-4">
+                    {{ admin_info.username[0] | upper }}
                 </div>
             </div>
-
-            <button class="btn btn-primary btn-block" onclick="toggleProfile(); toggleEditProfile();" id="edit-admin-profile-btn">
-                <i class="fa-solid fa-pen-to-square"></i> Edit Profile
+            
+            <div class="space-y-4 mb-6">
+                <div class="flex justify-between items-center py-3 border-b border-white/5">
+                    <span class="text-gray-400 text-sm">Username</span>
+                    <span class="text-white font-semibold">{{ admin_info.username }}</span>
+                </div>
+                <div class="flex justify-between items-center py-3 border-b border-white/5">
+                    <span class="text-gray-400 text-sm">Role</span>
+                    <span class="text-blue-400 font-bold text-sm bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">Administrator</span>
+                </div>
+            </div>
+            
+            <button onclick="document.getElementById('profileModal').classList.add('hidden'); document.getElementById('editProfileModal').classList.remove('hidden')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+                <iconify-icon icon="lucide:edit"></iconify-icon> Edit Profile
             </button>
         </div>
     </div>
 
     <!-- Edit Profile Modal -->
-    <div class="modal-overlay" id="editProfileModal">
-        <div class="modal">
-            <button class="modal-close" onclick="toggleEditProfile()" id="close-edit-modal">&times;</button>
-            <h3><i class="fa-solid fa-pen-to-square"></i> Update Profile</h3>
-
-            <form action="{{ url_for('update_admin') }}" method="POST" class="modal-form" enctype="multipart/form-data">
+    <div id="editProfileModal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="bg-[#0f172a] border border-white/10 rounded-2xl p-8 w-full max-w-md relative shadow-2xl">
+            <button onclick="document.getElementById('editProfileModal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <iconify-icon icon="lucide:x" class="text-xl"></iconify-icon>
+            </button>
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2"><iconify-icon icon="lucide:edit-3"></iconify-icon> Update Profile</h3>
+            
+            <form action="{{ url_for('update_admin') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" name="username" value="{{ admin_info.username }}" required>
+                
+                <div>
+                    <label class="block text-gray-400 text-sm mb-2">Username</label>
+                    <input type="text" name="username" value="{{ admin_info.username }}" required class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
                 </div>
-                <div class="form-group">
-                    <label>New Password <span class="hint">(leave empty to keep current)</span></label>
-                    <div class="input-group">
-                        <input type="password" id="edit_password" name="password" placeholder="Enter new password...">
-                        <button type="button" class="toggle-password" onclick="toggleEditPassword()">
-                            <svg id="editEyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
+                
+                <div>
+                    <label class="block text-gray-400 text-sm mb-2">New Password <span class="text-xs text-gray-500">(leave empty to keep current)</span></label>
+                    <div class="relative">
+                        <input type="password" id="edit_password" name="password" placeholder="Enter new password..." class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                        <button type="button" onclick="toggleEditPassword()" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
+                            <iconify-icon icon="lucide:eye" id="editEyeIcon"></iconify-icon>
                         </button>
                     </div>
                 </div>
-
-                <button type="submit" class="btn btn-success btn-block" id="save-admin-profile-btn">
-                    <i class="fa-solid fa-check"></i> Save Changes
+                
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 mt-6">
+                    <iconify-icon icon="lucide:check"></iconify-icon> Save Changes
                 </button>
             </form>
         </div>
     </div>
 
     <script>
-        function toggleProfile() {
-            document.getElementById('profileModal').classList.toggle('active');
-        }
-
-        function toggleEditProfile() {
-            document.getElementById('editProfileModal').classList.toggle('active');
-        }
-
-        function toggleAccordion(contentId, headerEl) {
-            var content = document.getElementById(contentId);
-            var isOpen = content.classList.contains('open');
-            content.classList.toggle('open');
-            headerEl.classList.toggle('active');
-        }
-
-        // Close modals on backdrop click
-        document.querySelectorAll('.modal-overlay').forEach(overlay => {
-            overlay.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('active');
-                }
-            });
-        });
-
         function toggleEditPassword() {
             const input = document.getElementById('edit_password');
             const icon = document.getElementById('editEyeIcon');
             if (input.type === 'password') {
                 input.type = 'text';
-                icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+                icon.setAttribute('icon', 'lucide:eye-off');
             } else {
                 input.type = 'password';
-                icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+                icon.setAttribute('icon', 'lucide:eye');
             }
         }
-    </script>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-</body>
+        
+        function filterTable(inputId, tableId) {
+            var input, filter, table, tr, td, i, txtValue;
+            input = document.getElementById(inputId);
+            filter = input.value.toUpperCase();
+            table = document.getElementById(tableId);
+            if (!table) return;
+            tr = table.getElementsByTagName("tr");
+            for (i = 1; i < tr.length; i++) {
+                let rowVisible = false;
+                for (let j = 0; j < tr[i].cells.length; j++) {
+                    td = tr[i].cells[j];
+                    if (td) {
+                        txtValue = td.textContent || td.innerText;
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            rowVisible = true;
+                            break;
+                        }
+                    }
+                }
+                tr[i].style.display = rowVisible ? "" : "none";
+            }
+        }
 
+        function toggleAdminNotification(event) {
+            if (event) event.stopPropagation();
+            const dropdown = document.getElementById('adminNotificationDropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Close modals when clicking outside
+        document.querySelectorAll('.fixed.inset-0').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                }
+            });
+        });
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function(e) {
+            const wrapper = document.getElementById('adminNotifWrapper');
+            const dropdown = document.getElementById('adminNotificationDropdown');
+            if (wrapper && dropdown && !wrapper.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(() => {
+            const welcomeAlert = document.getElementById('welcomeAlert');
+            if (welcomeAlert) {
+                welcomeAlert.style.opacity = '0';
+                setTimeout(() => welcomeAlert.style.display = 'none', 500);
+            }
+            
+            document.querySelectorAll('.flash-message').forEach(msg => {
+                msg.style.opacity = '0';
+                setTimeout(() => msg.style.display = 'none', 500);
+            });
+        }, 5000);
+    </script>
+</body>
 </html>

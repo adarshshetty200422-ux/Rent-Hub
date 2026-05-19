@@ -1,17 +1,24 @@
-import urllib.request
-import urllib.parse
+import unittest
+from app import app  # type: ignore
 
-try:
-    req = urllib.request.Request('http://127.0.0.1:5000/admin', method='GET')
-    with urllib.request.urlopen(req) as response:
+
+class TestApp(unittest.TestCase):
+    def setUp(self):
+        app.config["TESTING"] = True
+        app.config["WTF_CSRF_ENABLED"] = False
+        self.client = app.test_client()
+
+    def test_admin_get(self):
+        response = self.client.get("/admin")
+        self.assertEqual(response.status_code, 200)
         print("GET /admin OK")
-except Exception as e:
-    print("GET /admin ERROR:", e)
 
-try:
-    data = urllib.parse.urlencode({'adm_user': 'a', 'adm_pass': 'b'}).encode('utf-8')
-    req = urllib.request.Request('http://127.0.0.1:5000/admin', data=data, method='POST')
-    with urllib.request.urlopen(req) as response:
+    def test_admin_post(self):
+        response = self.client.post("/admin", data={"username": "a", "password": "b"})
+        # Should render login page with missing/invalid credentials error
+        self.assertEqual(response.status_code, 200)
         print("POST /admin OK")
-except Exception as e:
-    print("POST /admin ERROR:", e)
+
+
+if __name__ == "__main__":
+    unittest.main()

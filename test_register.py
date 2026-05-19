@@ -1,35 +1,48 @@
-import urllib.request
-import urllib.parse
-import sqlite3
+"""
+Test suite for user registration functionality.
+"""
+import unittest
+from app import app, get_db_connection  # type: ignore
 
-print("Testing Registration...")
 
-# Test POST to /register_user
-try:
-    data = urllib.parse.urlencode({'usr_user': 'newuser123', 'usr_pass': 'Password1!'}).encode('utf-8')
-    req = urllib.request.Request('http://127.0.0.1:5000/register_user', data=data, method='POST')
-    # Will likely return a redirect, which we can catch or ignore
-    with urllib.request.urlopen(req) as response:
-        print("POST /register_user Response:", response.status)
-except Exception as e:
-    print("POST /register_user ERROR:", e)
+class TestRegister(unittest.TestCase):
+    """Test cases for the user registration process."""
+    def setUp(self):
+        app.config["TESTING"] = True
+        app.config["WTF_CSRF_ENABLED"] = False
+        self.client = app.test_client()
 
-print("Checking Database...")
-try:
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE username='newuser123'")
-    user = cursor.fetchone()
-    if user:
-        print("User successfully inserted:", user)
-    else:
-        print("User NOT inserted.")
-        
-    # clean up test user
-    if user:
-        cursor.execute("DELETE FROM users WHERE username='newuser123'")
-        conn.commit()
-        print("Test user cleaned up.")
-    conn.close()
-except Exception as e:
-    print("Database check ERROR:", e)
+    def test_register_user(self):
+        """Test successful registration of a new user."""
+        print("Testing Registration...")
+        response = self.client.post(
+            "/register_user",
+            data={
+                "username": "newuser123",
+                "password": "Password1!",
+                "gmail": "testuser123@example.com",
+            },
+        )
+        print("POST /register_user Response:", response.status_code)
+        # Should redirect to dashboard
+        self.assertIn(response.status_code, [302, 200])
+
+        print("Checking Database...")
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM users WHERE username='newuser123'")
+            user = cursor.fetchone()
+
+            if user:
+                print("User successfully inserted:", dict(user))
+                cursor.execute("DELETE FROM users WHERE username='newuser123'")
+                conn.commit()
+                print("Test user cleaned up.")
+            else:
+                print("User NOT inserted.")
+
+        self.assertIsNotNone(user)
+
+
+if __name__ == "__main__":
+    unittest.main()

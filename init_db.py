@@ -12,8 +12,7 @@ def init():
 
     # Drop existing tables to ensure schema updates
     cursor.execute("DROP TABLE IF EXISTS service_requests")
-    cursor.execute("DROP TABLE IF EXISTS withdrawal_requests")
-    cursor.execute("DROP TABLE IF EXISTS withdraw_requests")
+
     cursor.execute("DROP TABLE IF EXISTS employee_messages")
     cursor.execute("DROP TABLE IF EXISTS user_messages")
     cursor.execute("DROP TABLE IF EXISTS requests")
@@ -88,30 +87,6 @@ def init():
     )
     """)
 
-    # 6. Withdrawal Requests Table (bank transfer)
-    cursor.execute("""
-    CREATE TABLE withdrawal_requests (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        amount REAL NOT NULL,
-        status TEXT DEFAULT 'Pending',
-        requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        bank_details TEXT,
-        FOREIGN KEY (user_id) REFERENCES users(id)
-    )
-    """)
-
-    # 7. UPI Withdraw Requests Table
-    cursor.execute("""
-    CREATE TABLE withdraw_requests (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        upi_id TEXT NOT NULL,
-        amount INTEGER NOT NULL,
-        status TEXT DEFAULT 'pending',
-        FOREIGN KEY (user_id) REFERENCES users(id)
-    )
-    """)
 
     # Seed default admin only (password will be set manually or via app)
     hashed = generate_password_hash('admin123')

@@ -1,548 +1,465 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Rent Hub user dashboard - browse services, manage rentals, and approve employees.">
-    <title>Dashboard — Rent Hub</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Rent Hub | Customer Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <style>
+        @view-transition { navigation: auto; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .card-glow:hover {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #020617;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px); z-index: 2000; justify-content: center; align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+    </style>
 </head>
-
-<body class="dashboard-body">
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="nav-brand">
-            <div class="nav-brand-icon">🏠</div>
-            <span>Rent Hub</span>
-        </div>
-        <div class="nav-actions">
-
-            <a href="#" onclick="toggleDeposit(); return false;" class="btn-nav-logout" style="background: rgba(0, 206, 201, 0.15); color: var(--accent); border-color: rgba(0, 206, 201, 0.2); margin-right: 15px;">
-                <i class="fa-solid fa-wallet"></i> Deposit
-            </a>
-            <a href="#" onclick="toggleBookingsModal(); return false;" class="btn-nav-profile" style="background: rgba(255, 159, 67, 0.15); color: #ff9f43; border-color: rgba(255, 159, 67, 0.2); margin-right: 15px;">
-                <i class="fa-solid fa-calendar-check"></i> My Bookings
-            </a>
-            <div class="nav-user-info" onclick="toggleProfile()" style="cursor: pointer;" id="profile-btn">
-                    <div class="nav-avatar">{{ session.get('username', 'U')[0] }}</div>
-                <span class="nav-username">{{ session.get('username') }}</span>
-                <span class="nav-role">USER</span>
+<body>
+    <div class="min-h-screen flex flex-col">
+        <!-- Navigation Bar -->
+        <nav class="fixed top-0 left-0 right-0 z-50 bg-[#020617]/90 backdrop-blur-md border-b border-white/5 px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <a href="/" id="nav-home-link" class="flex items-center gap-2">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                        <iconify-icon icon="lucide:home" class="text-white text-xl"></iconify-icon>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight text-white">Rent Hub</span>
+                </a>
             </div>
-            <a href="{{ url_for('logout') }}" class="btn-nav-logout" id="logout-btn">
-                <i class="fa-solid fa-right-from-bracket"></i> Logout
-            </a>
-        </div>
-    </nav>
 
-    <!-- Main Content -->
-    <div class="dashboard-content">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <ul class="flash-messages">
-            {% for category, message in messages %}
-            <li class="{{ category }}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-        {% endwith %}
-
-        <div class="dashboard-welcome">
-            <h1>Welcome back, <span class="highlight">{{ session.get('username') }}</span></h1>
-            <p>Your personalized rental hub and activity overview.</p>
-        </div>
-
-        <!-- Admin Messages -->
-        {% if user_messages %}
-        <div class="section">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <span class="icon">🔔</span> Notifications
-                    </div>
-                    <span class="badge badge-pending">{{ user_messages|length }} message{{ 's' if user_messages|length > 1 else '' }}</span>
-                </div>
-                <div class="card-body">
-                    <div class="messages-list">
-                        {% for msg in user_messages %}
-                        <div class="message-item">{{ msg.message }}</div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- The user deposit section has been moved to a modal -->
-
-
-
-
-
-        <!-- Available Services -->
-        <div class="section">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <span class="icon"><i class="fa-solid fa-layer-group"></i></span> Available Services & Rentals
-                    </div>
-                </div>
-                <div class="card-body">
-                    <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 17px;">
-                        Browse our premium collection of available rentals and services.
-                    </p>
-                    <div class="services-grid">
-                        <!-- Service 1 -->
-                        <a href="{{ url_for('view_service', service_name='Catering') }}" class="service-card" style="text-decoration: none; color: inherit; cursor: pointer; display: block;">
-                            <div class="service-icon-area" style="background: linear-gradient(135deg, #2d3436, #000000);">
-                                <i class="fa-solid fa-utensils fa-3x" style="color: #ff9f43;"></i>
-                            </div>
-                            <div class="service-details">
-                                <h4>Premium Catering</h4>
-                                <p>High-quality event catering with customizable menus and professional staff.</p>
-                                <div class="service-tags">
-                                    <span class="tag">Food & Events</span>
-                                </div>
-                            </div>
-                        </a>
-
-                        <!-- Service 2 -->
-                        <a href="{{ url_for('view_service', service_name='Plumbing') }}" class="service-card" style="text-decoration: none; color: inherit; cursor: pointer; display: block;">
-                            <div class="service-icon-area" style="background: linear-gradient(135deg, #2c3e50, #3498db);">
-                                <i class="fa-solid fa-faucet-drip fa-3x" style="color: #48dbfb;"></i>
-                            </div>
-                            <div class="service-details">
-                                <h4>Expert Plumbing</h4>
-                                <p>Fast, reliable plumbing repair and installation for all spaces.</p>
-                                <div class="service-tags">
-                                    <span class="tag">Maintenance</span>
-                                </div>
-                            </div>
-                        </a>
-
-                        <!-- Service 3 -->
-                        <a href="{{ url_for('view_service', service_name='Electrician') }}" class="service-card" style="text-decoration: none; color: inherit; cursor: pointer; display: block;">
-                            <div class="service-icon-area" style="background: linear-gradient(135deg, #192a56, #273c75);">
-                                <i class="fa-solid fa-bolt fa-3x" style="color: #feca57;"></i>
-                            </div>
-                            <div class="service-details">
-                                <h4>Certified Electrician</h4>
-                                <p>Professional electrical diagnostics, wiring, panels, and emergency repairs.</p>
-                                <div class="service-tags">
-                                    <span class="tag">Repair</span>
-                                </div>
-                            </div>
-                        </a>
-
-                        <!-- Service 4 -->
-                        <a href="#" onclick="toggleApplianceModal(); return false;" class="service-card" style="text-decoration: none; color: inherit; cursor: pointer; display: block;">
-                            <div class="service-icon-area" style="background: linear-gradient(135deg, #d35400, #e67e22);">
-                                <i class="fa-solid fa-screwdriver-wrench fa-3x" style="color: #f1c40f;"></i>
-                            </div>
-                            <div class="service-details">
-                                <h4>Appliance Service</h4>
-                                <p>Expert repair for AC, Washing Machines, Refrigerators, and TVs.</p>
-                                <div class="service-tags">
-                                    <span class="tag">Repair</span>
-                                    <span class="tag">Appliance</span>
-                                </div>
-                            </div>
-                        </a>
-
-                        <!-- Service 5 -->
-                        <a href="{{ url_for('view_service', service_name='Moving / Shifting Service') }}" class="service-card" style="text-decoration: none; color: inherit; cursor: pointer; display: block;">
-                            <div class="service-icon-area" style="background: linear-gradient(135deg, #16a085, #1abc9c);">
-                                <i class="fa-solid fa-truck-fast fa-3x" style="color: #ecf0f1;"></i>
-                            </div>
-                            <div class="service-details">
-                                <h4>Moving / Shifting Service</h4>
-                                <p>Professional moving and packing services for relocations.</p>
-                                <div class="service-tags">
-                                    <span class="tag">Transport</span>
-                                    <span class="tag">Moving</span>
-                                </div>
-                            </div>
-                        </a>
-
-                        <!-- Service 6 -->
-                        <a href="{{ url_for('view_service', service_name='Cleaning Service') }}" class="service-card" style="text-decoration: none; color: inherit; cursor: pointer; display: block;">
-                            <div class="service-icon-area" style="background: linear-gradient(135deg, #8e44ad, #9b59b6);">
-                                <i class="fa-solid fa-broom fa-3x" style="color: #f1c40f;"></i>
-                            </div>
-                            <div class="service-details">
-                                <h4>Cleaning Service</h4>
-                                <p>Deep cleaning solutions for homes, offices, and commercial spaces.</p>
-                                <div class="service-tags">
-                                    <span class="tag">Cleaning</span>
-                                    <span class="tag">Maintenance</span>
-                                </div>
-                            </div>
-                        </a>
-
-                        <!-- Service 7 -->
-                        <a href="{{ url_for('view_service', service_name='Furniture Rental Service') }}" class="service-card" style="text-decoration: none; color: inherit; cursor: pointer; display: block;">
-                            <div class="service-icon-area" style="background: linear-gradient(135deg, #a0522d, #cd853f);">
-                                <i class="fa-solid fa-couch fa-3x" style="color: #ffccaa;"></i>
-                            </div>
-                            <div class="service-details">
-                                <h4>Furniture Rental Service</h4>
-                                <p>High-quality furniture rentals for homes, offices, and events.</p>
-                                <div class="service-tags">
-                                    <span class="tag">Rental</span>
-                                    <span class="tag">Furniture</span>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Profile Modal -->
-    <div class="modal-overlay" id="profileModal">
-        <div class="modal">
-            <button class="modal-close" onclick="toggleProfile()" id="close-profile-modal">&times;</button>
-            <h3>Personal Details</h3>
-
-            <div class="profile-details">
-                <div class="profile-header" style="text-align: center; margin-bottom: 20px;">
-                        <div class="profile-avatar" style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--primary)); display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: bold; color: white; margin: 0 auto 10px;">{{ user_info.username[0] | upper }}</div>
-                </div>
-                <div class="profile-row">
-                    <span class="label">Username</span>
-                    <span class="value">{{ user_info.username }}</span>
-                </div>
-                <div class="profile-row">
-                    <span class="label">Role</span>
-                    <span class="value" style="color: var(--primary-light);">USER</span>
-                </div>
-                <div class="profile-row">
-                    <span class="label">Gmail ID</span>
-                    <span class="value">{{ user_info.gmail or 'Not added' }}</span>
-                </div>
-                <div class="profile-row">
-                    <span class="label">Deposit Balance</span>
-                    <span class="value">₹{{ user_info.deposit_balance or 0.0 }}</span>
+            <!-- Central Search -->
+            <div class="hidden md:flex items-center flex-1 max-w-xl mx-12">
+                <div class="relative w-full group">
+                    <iconify-icon icon="lucide:search" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors"></iconify-icon>
+                    <input type="text" placeholder="Search for your next service..." class="w-full bg-white/5 border border-white/10 rounded-full py-2.5 pl-12 pr-4 focus:outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm" id="search-bar">
                 </div>
             </div>
 
-            <button class="btn btn-primary btn-block" onclick="toggleProfile(); toggleEditProfile();" id="edit-profile-btn">
-                <i class="fa-solid fa-pen-to-square"></i> Edit Profile
-            </button>
-        </div>
-    </div>
-
-    <!-- Edit Profile Modal -->
-    <div class="modal-overlay" id="editProfileModal">
-        <div class="modal">
-            <button class="modal-close" onclick="toggleEditProfile()" id="close-edit-modal">&times;</button>
-            <h3>Update Profile</h3>
-
-            {% if user_info %}
-            <form action="{{ url_for('update_user') }}" method="POST" class="modal-form" enctype="multipart/form-data">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" name="username" value="{{ user_info.username }}" required>
-                </div>
-                <div class="form-group">
-                    <label>New Password <span class="hint">(leave empty to keep current)</span></label>
-                    <div class="input-group">
-                        <input type="password" id="edit_password" name="password" placeholder="Enter new password...">
-                        <button type="button" class="toggle-password" onclick="toggleEditPassword()">
-                            <svg id="editEyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Gmail ID</label>
-                    <input type="email" name="gmail" value="{{ user_info.gmail or '' }}" placeholder="Enter Gmail ID">
-                </div>
-                <button type="submit" class="btn btn-success btn-block" id="save-profile-btn">
-                    <i class="fa-solid fa-check"></i> Save Changes
+            <div class="flex items-center gap-4">
+                <button onclick="document.getElementById('depositModal').classList.add('active')" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors" title="Deposit Funds">
+                    <iconify-icon icon="lucide:wallet" class="text-xl text-gray-300"></iconify-icon>
                 </button>
-            </form>
-            {% endif %}
-        </div>
-    </div>
+                
+                <div class="relative" id="notifWrapper">
+                    <button onclick="toggleNotifications(event)" id="nav-notification-btn" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center relative hover:bg-white/10 transition-colors">
+                        <iconify-icon icon="lucide:bell" class="text-xl text-gray-300"></iconify-icon>
+                        {% if user_messages %}
+                        <span class="absolute top-1 right-1 w-4 h-4 bg-blue-500 border-2 border-[#020617] rounded-full text-[10px] flex items-center justify-center font-bold">{{ user_messages|length }}</span>
+                        {% endif %}
+                    </button>
 
-    <!-- Appliance Service Modal -->
-    <div class="modal-overlay" id="applianceModal">
-        <div class="modal" style="max-width: 400px;">
-            <button class="modal-close" onclick="toggleApplianceModal()" id="close-appliance-modal">&times;</button>
-            <h3><i class="fa-solid fa-screwdriver-wrench"></i> Choose Appliance Service</h3>
-            
-            <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
-                <a href="{{ url_for('view_service', service_name='Appliance Service: AC Repair') }}" style="display: flex; align-items: center; padding: 15px; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--text); font-weight: 500; transition: all 0.2s ease; background: var(--card-bg);" onmouseover="this.style.borderColor='var(--primary)';" onmouseout="this.style.borderColor='var(--border)';">
-                    <i class="fa-solid fa-wind fa-fw" style="color: #3498db; margin-right: 15px; font-size: 1.2rem;"></i> 
-                    <span>AC Repair</span>
-                </a>
-                <a href="{{ url_for('view_service', service_name='Appliance Service: Washing Machine Repair') }}" style="display: flex; align-items: center; padding: 15px; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--text); font-weight: 500; transition: all 0.2s ease; background: var(--card-bg);" onmouseover="this.style.borderColor='var(--primary)';" onmouseout="this.style.borderColor='var(--border)';">
-                    <i class="fa-solid fa-shirt fa-fw" style="color: #2ecc71; margin-right: 15px; font-size: 1.2rem;"></i> 
-                    <span>Washing Machine Repair</span>
-                </a>
-                <a href="{{ url_for('view_service', service_name='Appliance Service: Refrigerator Repair') }}" style="display: flex; align-items: center; padding: 15px; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--text); font-weight: 500; transition: all 0.2s ease; background: var(--card-bg);" onmouseover="this.style.borderColor='var(--primary)';" onmouseout="this.style.borderColor='var(--border)';">
-                    <i class="fa-solid fa-snowflake fa-fw" style="color: #9b59b6; margin-right: 15px; font-size: 1.2rem;"></i> 
-                    <span>Refrigerator Repair</span>
-                </a>
-                <a href="{{ url_for('view_service', service_name='Appliance Service: TV Repair') }}" style="display: flex; align-items: center; padding: 15px; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--text); font-weight: 500; transition: all 0.2s ease; background: var(--card-bg);" onmouseover="this.style.borderColor='var(--primary)';" onmouseout="this.style.borderColor='var(--border)';">
-                    <i class="fa-solid fa-tv fa-fw" style="color: #e74c3c; margin-right: 15px; font-size: 1.2rem;"></i> 
-                    <span>TV Repair</span>
+                    <!-- Notifications Dropdown -->
+                    <div id="notificationDropdown" class="hidden absolute right-0 mt-2 w-80 bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                        <div class="p-4 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                            <h4 class="font-bold text-white text-sm">Notifications</h4>
+                            <span class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded-md font-bold uppercase tracking-wider">{{ user_messages|length if user_messages else 0 }} New</span>
+                        </div>
+                        <div class="p-2 max-h-80 overflow-y-auto">
+                            {% if user_messages %}
+                                {% for msg in user_messages %}
+                                <div class="p-3 hover:bg-white/5 rounded-xl transition-colors flex gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                                        <iconify-icon icon="lucide:mail" class="text-blue-400"></iconify-icon>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-300 leading-snug">{{ msg.message }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="p-8 text-center text-gray-500">
+                                    <iconify-icon icon="lucide:inbox" class="text-4xl mb-2 opacity-50"></iconify-icon>
+                                    <p class="text-sm">No new notifications</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 bg-white/5 rounded-full pl-1 pr-4 py-1 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors" onclick="document.getElementById('profileModal').classList.add('active')">
+                    <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold shadow-inner uppercase">
+                        {{ session.get('username', 'U')[0] }}
+                    </div>
+                    <span class="text-xs font-bold text-white">{{ session.get('username') }}</span>
+                </div>
+
+                <a href="{{ url_for('logout') }}" id="nav-logout-btn" class="hidden md:flex items-center gap-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-4 py-2 rounded-lg text-sm font-semibold transition-all border border-rose-500/20">
+                    <iconify-icon icon="lucide:log-out"></iconify-icon>
+                    Logout
                 </a>
             </div>
-        </div>
-    </div>
+        </nav>
 
-    <!-- Deposit Modal -->
-    <div class="modal-overlay" id="depositModal">
-        <div class="modal" style="max-width: 500px;">
-            <button class="modal-close" onclick="toggleDeposit()" id="close-deposit-modal">&times;</button>
-            <h3><i class="fa-solid fa-wallet"></i> Advance Deposit</h3>
+        <!-- Main Content Area -->
+        <main class="flex-1 pt-28 pb-12 px-6 lg:px-12 max-w-[1600px] mx-auto w-full">
             
-            <div class="info-list" style="margin-top: 15px;">
-                <div class="info-row" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
-                    <span class="info-label" style="font-weight: 600;">Advance Deposit Balance</span>
-                    <span class="info-value {{ 'text-success' if (user_info.deposit_balance or 0) >= 2000 else 'text-danger' }}" style="font-weight: 600; font-size: 1.2rem;">₹{{ user_info.deposit_balance or 0.0 }}</span>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="mb-8 space-y-4">
+                {% for category, message in messages %}
+                <div class="flash-message p-4 rounded-xl flex items-center justify-between transition-all duration-500 {% if category == 'error' %}bg-rose-500/10 border border-rose-500/20 text-rose-400{% else %}bg-emerald-500/10 border border-emerald-500/20 text-emerald-400{% endif %}">
+                    <div class="flex items-center gap-3">
+                        <iconify-icon icon="{% if category == 'error' %}lucide:alert-circle{% else %}lucide:check-circle{% endif %}" class="text-xl"></iconify-icon>
+                        <p class="text-sm font-medium">{{ message }}</p>
+                    </div>
+                    <button class="hover:opacity-70" onclick="this.parentElement.style.display='none'">
+                        <iconify-icon icon="lucide:x" class="text-lg"></iconify-icon>
+                    </button>
                 </div>
-                {% if pending_withdrawals > 0 %}
-                <div class="info-row" style="display: flex; justify-content: space-between; align-items: center; padding: 0 0 15px 0;">
-                    <span class="info-label" style="font-size: 0.9rem; color: var(--text-muted);">Pending Advance Withdrawal</span>
-                    <span class="info-value text-danger" style="font-size: 0.95rem; font-weight: 500;">₹{{ pending_withdrawals }} (Awaiting Admin Approval)</span>
-                </div>
-                {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
 
-                <div style="border-bottom: 2px solid #eee; margin-bottom: 15px;"></div>
-                
-                <div style="display: flex; flex-direction: column; gap: 20px;">
-                    <!-- Deposit Section -->
-                    <div>
-                        <span class="info-label" style="display: block; margin-bottom: 10px; font-size: 0.85rem; color: #666;">Add Funds</span>
-                        <form action="{{ url_for('user_add_deposit') }}" method="POST" style="margin: 0; display: flex; gap: 10px;">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <input type="number" name="amount" min="1" step="0.01" required placeholder="Amount to deposit" class="form-control" style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background-color: var(--card-bg); color: var(--text);">
-                            <button type="submit" class="btn btn-success"><i class="fa-solid fa-plus"></i> Deposit</button>
-                        </form>
+            <!-- Header -->
+            <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <h1 class="text-4xl font-extrabold tracking-tight mb-2">Hello, <span class="text-blue-500">{{ session.get('username') }}!</span></h1>
+                    <p class="text-gray-400">What are we booking for you today?</p>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div class="text-right">
+                        <span class="block text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">Available Credits</span>
+                        <span class="text-2xl font-black text-emerald-400">₹{{ user_info.balance or 0 }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Top Row: Active & Timeline -->
+            <div class="grid grid-cols-1 gap-8 mb-12">
+                <!-- My Active Bookings -->
+                <div class="glass-card rounded-[2rem] p-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <iconify-icon icon="lucide:activity" class="text-emerald-500 text-xl"></iconify-icon>
+                            <h2 class="text-xl font-bold">My Active Bookings</h2>
+                        </div>
+                        <a href="#" id="view-all-bookings" class="text-sm text-blue-400 hover:text-blue-300 font-semibold">View All</a>
                     </div>
                     
-                    <!-- Withdraw Section -->
-                    <div>
-                        <span class="info-label" style="display: block; margin-bottom: 10px; font-size: 0.85rem; color: #666;">Withdraw Advance Deposit</span>
-                        <form action="{{ url_for('user_withdraw_deposit') }}" method="POST" style="margin: 0; display: flex; gap: 10px;">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <input type="number" name="amount" min="1" step="1" max="{{ user_info.deposit_balance or 0 }}" required placeholder="Amount to withdraw" class="form-control" style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background-color: var(--card-bg); color: var(--text);">
-                            <button type="submit" class="btn btn-danger" {% if (user_info.deposit_balance or 0) == 0 %}disabled{% endif %}><i class="fa-solid fa-minus"></i> Withdraw</button>
-                        </form>
-                    </div>
-
-
-
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Withdraw Balance (UPI) Modal -->
-    <div class="modal-overlay" id="withdrawBalanceModal">
-        <div class="modal" style="max-width: 450px;">
-            <button class="modal-close" onclick="toggleWithdrawBalance()" id="close-withdraw-balance-modal">&times;</button>
-            <h3><i class="fa-solid fa-mobile-screen-button"></i> Withdraw Balance (UPI)</h3>
-            <p style="color: var(--text-muted); margin-bottom: 20px;">Transfer your earnings/refunds to your bank via UPI.</p>
-            
-            <div class="info-list" style="margin-bottom: 20px;">
-                <div class="info-row" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-                    <span class="label">Available Balance</span>
-                    <span class="value" style="font-weight: 700; color: var(--success);">₹{{ user_info.balance or 0 }}</span>
-                </div>
-            </div>
-
-            <form action="{{ url_for('withdraw') }}" method="POST" class="modal-form">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="form-group">
-                    <label>UPI ID</label>
-                    <input type="text" name="upi" placeholder="example@upi" required pattern="^[\w.-]+@[\w.-]+$">
-                </div>
-                <div class="form-group">
-                    <label>Amount to Withdraw</label>
-                    <input type="number" name="amount" min="1" max="{{ user_info.balance or 0 }}" required placeholder="Amount in ₹">
-                </div>
-                <button type="submit" class="btn btn-primary btn-block" {% if (user_info.balance or 0) <= 0 %}disabled{% endif %}>
-                    <i class="fa-solid fa-paper-plane"></i> Submit Request
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Rating Modal -->
-
-    <div class="modal-overlay" id="ratingModal">
-        <div class="modal" style="max-width: 450px;">
-            <button class="modal-close" onclick="toggleRatingModal()" id="close-rating-modal">&times;</button>
-            <h3>Rate Professional</h3>
-            <p id="rating-professional-name" style="color: var(--text-muted); margin-bottom: 20px;"></p>
-            
-            <form id="ratingForm" method="POST" class="modal-form">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="form-group" style="text-align: center;">
-                    <label style="display: block; margin-bottom: 15px;">How was your experience?</label>
-                    <div class="star-rating" style="display: flex; justify-content: center; gap: 10px; font-size: 2rem;">
-                        <input type="radio" name="rating" value="5" id="star5" style="display: none;"><label for="star5" style="cursor: pointer;" onclick="setRating(5)">⭐</label>
-                        <input type="radio" name="rating" value="4" id="star4" style="display: none;"><label for="star4" style="cursor: pointer;" onclick="setRating(4)">⭐</label>
-                        <input type="radio" name="rating" value="3" id="star3" style="display: none;"><label for="star3" style="cursor: pointer;" onclick="setRating(3)">⭐</label>
-                        <input type="radio" name="rating" value="2" id="star2" style="display: none;"><label for="star2" style="cursor: pointer;" onclick="setRating(2)">⭐</label>
-                        <input type="radio" name="rating" value="1" id="star1" style="display: none;"><label for="star1" style="cursor: pointer;" onclick="setRating(1)">⭐</label>
-                    </div>
-                    <p id="rating-value-display" style="margin-top: 10px; font-weight: 600; color: var(--accent);">Select stars</p>
-                </div>
-                <div class="form-group">
-                    <label>Review (Optional)</label>
-                    <textarea name="review" rows="3" placeholder="Write a short review..."></textarea>
-                </div>
-                <button type="submit" class="btn btn-success btn-block">
-                    Submit Feedback
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Bookings Modal -->
-    <div class="modal-overlay" id="bookingsModal">
-        <div class="modal" style="max-width: 600px;">
-            <button class="modal-close" onclick="toggleBookingsModal()">&times;</button>
-            <h3><i class="fa-solid fa-calendar-check"></i> My Bookings</h3>
-            <div class="modal-body" style="max-height: 400px; overflow-y: auto; margin-top: 20px;">
-                {% if bookings %}
-                <div class="requests-list" style="display: flex; flex-direction: column; gap: 15px;">
-                    {% for req in bookings %}
-                    <div class="request-card" style="padding: 15px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg);">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <span style="font-weight: bold; color: var(--accent);">Request #{{ req.id }}</span>
-                            <span class="status-badge 
-                                {% if req.status == 'Completed' %}badge-approved
-                                {% elif req.status == 'Accepted' %}badge-pending
-                                {% else %}badge-blocked{% endif %}" style="font-size: 0.8rem; padding: 4px 8px; border-radius: 12px; background: rgba(0, 206, 201, 0.15); color: var(--success);">
-                                {{ req.status }}
-                            </span>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-blue-500/30 transition-all cursor-pointer">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                    <iconify-icon icon="lucide:droplets" class="text-blue-500 text-xl"></iconify-icon>
+                                </div>
+                                <span class="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-[10px] font-bold rounded uppercase tracking-wider">In Progress</span>
+                            </div>
+                            <h3 class="font-bold text-sm mb-1">Expert Plumbing</h3>
+                            <p class="text-gray-500 text-xs mb-3">Main bathroom leak repair</p>
+                            <div class="flex items-center justify-between pt-3 border-t border-white/5">
+                                <span class="text-gray-400 text-[10px]">Ends: Today, 5:00 PM</span>
+                                <iconify-icon icon="lucide:chevron-right" class="text-gray-600"></iconify-icon>
+                            </div>
                         </div>
-                        <p style="margin: 5px 0; color: var(--text);"><strong>Professional:</strong> {{ req.employee_name }} ({{ req.employee_gmail }})</p>
-                        {% if req.status == 'Completed' and not req.rating %}
-                        <button onclick="toggleBookingsModal(); openRatingModal('{{ req.id }}', '{{ req.employee_name }}')" class="btn btn-primary btn-sm" style="margin-top: 10px;">Leave Rating</button>
-                        {% elif req.rating %}
-                        <p style="margin: 5px 0; color: #feca57;"><strong>You Rated:</strong> {{ req.rating }} ⭐</p>
-                        {% endif %}
+
+                        <div class="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-blue-500/30 transition-all cursor-pointer">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                                    <iconify-icon icon="lucide:brush" class="text-purple-500 text-xl"></iconify-icon>
+                                </div>
+                                <span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-[10px] font-bold rounded uppercase tracking-wider">Scheduled</span>
+                            </div>
+                            <h3 class="font-bold text-sm mb-1">Cleaning Service</h3>
+                            <p class="text-gray-500 text-xs mb-3">Full apartment deep clean</p>
+                            <div class="flex items-center justify-between pt-3 border-t border-white/5">
+                                <span class="text-gray-400 text-[10px]">Starts: Oct 28, 9:00 AM</span>
+                                <iconify-icon icon="lucide:chevron-right" class="text-gray-600"></iconify-icon>
+                            </div>
+                        </div>
                     </div>
-                    {% endfor %}
                 </div>
-                {% else %}
-                <div class="empty-state">
-                    <div class="empty-icon">📅</div>
-                    <p>No bookings found.</p>
+            </div>
+
+
+
+            <!-- Services Section -->
+            <div class="glass-card rounded-[2.5rem] p-8">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <iconify-icon icon="lucide:layout-grid" class="text-blue-500 text-xl"></iconify-icon>
+                            <h2 class="text-xl font-bold">Explore All Services</h2>
+                        </div>
+                        <p class="text-gray-400 text-sm">Top-rated professionals for all your rental and home needs.</p>
+                    </div>
+                    
+
                 </div>
-                {% endif %}
+
+                <!-- Services Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="services-grid">
+                    <!-- Card 1 -->
+                    <div class="group bg-[#0f172a] rounded-2xl overflow-hidden border border-white/5 transition-all hover:border-white/20">
+                        <div class="h-32 bg-[#1a1a1a] flex items-center justify-center relative">
+                            <iconify-icon icon="lucide:utensils-cross-over" class="text-[#ffa500] text-5xl"></iconify-icon>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-bold text-lg mb-2">Premium Catering</h3>
+                            <p class="text-gray-500 text-xs leading-relaxed mb-6 h-12 overflow-hidden">Customizable menus and professional waitstaff for your next event.</p>
+                            <a href="{{ url_for('view_service', service_name='Catering') }}" id="cta-book-catering" class="block text-center w-full py-3 bg-white/5 hover:bg-blue-600 hover:text-white text-blue-400 rounded-xl text-xs font-bold transition-all border border-blue-500/10">Book Now</a>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="group bg-[#0f172a] rounded-2xl overflow-hidden border border-white/5 transition-all hover:border-white/20">
+                        <div class="h-32 bg-[#2e3b62] flex items-center justify-center">
+                            <iconify-icon icon="lucide:zap" class="text-yellow-400 text-5xl"></iconify-icon>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-bold text-lg mb-2">Certified Electrician</h3>
+                            <p class="text-gray-500 text-xs leading-relaxed mb-6 h-12 overflow-hidden">Professional wiring, diagnostics, and emergency repair services.</p>
+                            <a href="{{ url_for('view_service', service_name='Electrician') }}" id="cta-book-electrician" class="block text-center w-full py-3 bg-white/5 hover:bg-blue-600 hover:text-white text-blue-400 rounded-xl text-xs font-bold transition-all border border-blue-500/10">Book Now</a>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="group bg-[#0f172a] rounded-2xl overflow-hidden border border-white/5 transition-all hover:border-white/20">
+                        <div class="h-32 bg-[#e67e22] flex items-center justify-center">
+                            <iconify-icon icon="lucide:hammer" class="text-white text-5xl"></iconify-icon>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-bold text-lg mb-2">Appliance Repair</h3>
+                            <p class="text-gray-500 text-xs leading-relaxed mb-6 h-12 overflow-hidden">Quick repairs for AC units, washing machines, and refrigerators.</p>
+                            <button onclick="document.getElementById('applianceModal').classList.add('active')" id="cta-book-appliance" class="w-full py-3 bg-white/5 hover:bg-blue-600 hover:text-white text-blue-400 rounded-xl text-xs font-bold transition-all border border-blue-500/10">Book Now</button>
+                        </div>
+                    </div>
+
+                    <!-- Card 4 -->
+                    <div class="group bg-[#0f172a] rounded-2xl overflow-hidden border border-white/5 transition-all hover:border-white/20">
+                        <div class="h-32 bg-[#1abc9c] flex items-center justify-center">
+                            <iconify-icon icon="lucide:truck" class="text-white text-5xl"></iconify-icon>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-bold text-lg mb-2">Shifting Service</h3>
+                            <p class="text-gray-500 text-xs leading-relaxed mb-6 h-12 overflow-hidden">Secure packing and logistics for seamless home relocations.</p>
+                            <a href="{{ url_for('view_service', service_name='Moving / Shifting Service') }}" id="cta-book-moving" class="block text-center w-full py-3 bg-white/5 hover:bg-blue-600 hover:text-white text-blue-400 rounded-xl text-xs font-bold transition-all border border-blue-500/10">Book Now</a>
+                        </div>
+                    </div>
+
+                    <!-- Card 5 -->
+                    <div class="group bg-[#0f172a] rounded-2xl overflow-hidden border border-white/5 transition-all hover:border-white/20">
+                        <div class="h-32 bg-[#8e44ad] flex items-center justify-center relative">
+                            <iconify-icon icon="lucide:sparkles" class="text-white text-5xl"></iconify-icon>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-bold text-lg mb-2">Cleaning Service</h3>
+                            <p class="text-gray-500 text-xs leading-relaxed mb-6 h-12 overflow-hidden">Comprehensive deep cleaning services for your home or office.</p>
+                            <a href="{{ url_for('view_service', service_name='Cleaning Service') }}" class="block text-center w-full py-3 bg-white/5 hover:bg-blue-600 hover:text-white text-blue-400 rounded-xl text-xs font-bold transition-all border border-blue-500/10">Book Now</a>
+                        </div>
+                    </div>
+
+                    <!-- Card 6 -->
+                    <div class="group bg-[#0f172a] rounded-2xl overflow-hidden border border-white/5 transition-all hover:border-white/20">
+                        <div class="h-32 bg-[#3498db] flex items-center justify-center relative">
+                            <iconify-icon icon="lucide:droplets" class="text-white text-5xl"></iconify-icon>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-bold text-lg mb-2">Expert Plumbing</h3>
+                            <p class="text-gray-500 text-xs leading-relaxed mb-6 h-12 overflow-hidden">Quick and reliable plumbing repairs, installations, and maintenance.</p>
+                            <a href="{{ url_for('view_service', service_name='Plumbing') }}" class="block text-center w-full py-3 bg-white/5 hover:bg-blue-600 hover:text-white text-blue-400 rounded-xl text-xs font-bold transition-all border border-blue-500/10">Book Now</a>
+                        </div>
+                    </div>
+
+                    <!-- Card 7 -->
+                    <div class="group bg-[#0f172a] rounded-2xl overflow-hidden border border-white/5 transition-all hover:border-white/20">
+                        <div class="h-32 bg-[#e74c3c] flex items-center justify-center relative">
+                            <iconify-icon icon="lucide:sofa" class="text-white text-5xl"></iconify-icon>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-bold text-lg mb-2">Furniture Rental</h3>
+                            <p class="text-gray-500 text-xs leading-relaxed mb-6 h-12 overflow-hidden">Premium and affordable furniture rentals for all your needs.</p>
+                            <a href="{{ url_for('view_service', service_name='Furniture Rental Service') }}" class="block text-center w-full py-3 bg-white/5 hover:bg-blue-600 hover:text-white text-blue-400 rounded-xl text-xs font-bold transition-all border border-blue-500/10">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="py-8 px-6 lg:px-12 border-t border-white/5 bg-[#020617] mt-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <p class="text-gray-500 text-xs uppercase tracking-widest font-bold italic opacity-50">Rent Hub • Your Modern Lifestyle Partner</p>
+            <div class="flex items-center gap-8">
+                <a href="#" id="footer-help" class="text-gray-500 hover:text-white text-xs font-semibold">Help Center</a>
+                <a href="#" id="footer-safety" class="text-gray-500 hover:text-white text-xs font-semibold">Safety Guidelines</a>
+                <a href="#" id="footer-terms" class="text-gray-500 hover:text-white text-xs font-semibold">Privacy</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="bg-[#0f172a] border border-white/10 rounded-2xl p-8 w-full max-w-md relative shadow-2xl mx-4">
+            <button onclick="document.getElementById('profileModal').classList.remove('active')" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <iconify-icon icon="lucide:x" class="text-xl"></iconify-icon>
+            </button>
+            <h3 class="text-xl font-bold text-white mb-6">Personal Details</h3>
+            
+            <div class="flex justify-center mb-6">
+                <div class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-3xl font-bold border-4 border-slate-900 shadow-2xl uppercase">
+                    {{ user_info.username[0] }}
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="flex justify-between items-center p-4 bg-white/5 rounded-xl border border-white/5">
+                    <span class="text-gray-400 text-sm font-semibold">Username</span>
+                    <span class="text-white font-bold">{{ user_info.username }}</span>
+                </div>
+                <div class="flex justify-between items-center p-4 bg-white/5 rounded-xl border border-white/5">
+                    <span class="text-gray-400 text-sm font-semibold">Email</span>
+                    <span class="text-white font-bold">{{ user_info.gmail or 'Not added' }}</span>
+                </div>
+                <div class="flex justify-between items-center p-4 bg-white/5 rounded-xl border border-white/5">
+                    <span class="text-gray-400 text-sm font-semibold">Balance</span>
+                    <span class="text-emerald-400 font-bold">₹{{ user_info.balance or 0 }}</span>
+                </div>
+                <div class="flex justify-between items-center p-4 bg-white/5 rounded-xl border border-white/5">
+                    <span class="text-gray-400 text-sm font-semibold">Deposit</span>
+                    <span class="text-white font-bold">₹{{ user_info.deposit_balance or 0.0 }}</span>
+                </div>
+            </div>
+            
+            <button onclick="document.getElementById('profileModal').classList.remove('active'); document.getElementById('editProfileModal').classList.add('active');" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-colors mt-6">Edit Profile</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editProfileModal">
+        <div class="bg-[#0f172a] border border-white/10 rounded-2xl p-8 w-full max-w-md relative shadow-2xl mx-4">
+            <button onclick="document.getElementById('editProfileModal').classList.remove('active')" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <iconify-icon icon="lucide:x" class="text-xl"></iconify-icon>
+            </button>
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2"><iconify-icon icon="lucide:edit-3"></iconify-icon> Update Profile</h3>
+            
+            <form action="{{ url_for('update_user') }}" method="POST" class="space-y-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div>
+                    <label class="block text-gray-400 text-sm mb-2">Username</label>
+                    <input type="text" name="username" value="{{ user_info.username }}" required class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-gray-400 text-sm mb-2">Email ID</label>
+                    <input type="email" name="gmail" value="{{ user_info.gmail or '' }}" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-gray-400 text-sm mb-2">New Password <span class="text-xs">(leave empty to keep current)</span></label>
+                    <input type="password" name="password" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-colors mt-6">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="depositModal">
+        <div class="bg-[#0f172a] border border-white/10 rounded-2xl p-8 w-full max-w-md relative shadow-2xl mx-4">
+            <button onclick="document.getElementById('depositModal').classList.remove('active')" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <iconify-icon icon="lucide:x" class="text-xl"></iconify-icon>
+            </button>
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2"><iconify-icon icon="lucide:wallet"></iconify-icon> Advance Deposit</h3>
+            
+            <div class="mb-6 bg-slate-900 p-4 rounded-xl border border-white/5">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm font-bold">Current Deposit</span>
+                    <span class="text-xl font-black text-emerald-400">₹{{ user_info.deposit_balance or 0.0 }}</span>
+                </div>
+            </div>
+            <form action="{{ url_for('user_add_deposit') }}" method="POST" class="space-y-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div>
+                    <label class="block text-gray-400 text-sm mb-2">Amount to Deposit</label>
+                    <input type="number" name="amount" min="1" step="0.01" required placeholder="Enter amount..." class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-colors mt-4">Proceed to Pay</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="applianceModal">
+        <div class="bg-[#0f172a] border border-white/10 rounded-2xl p-8 w-full max-w-md relative shadow-2xl mx-4">
+            <button onclick="document.getElementById('applianceModal').classList.remove('active')" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <iconify-icon icon="lucide:x" class="text-xl"></iconify-icon>
+            </button>
+            <h3 class="text-xl font-bold text-white mb-6">Choose Appliance Service</h3>
+            <div class="flex flex-col gap-3">
+                <a href="{{ url_for('view_service', service_name='Appliance Service: AC Repair') }}" class="p-4 bg-slate-900 border border-white/10 rounded-xl hover:border-blue-500/50 transition-colors flex items-center gap-4 group">
+                    <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center group-hover:bg-blue-500 transition-colors">
+                        <iconify-icon icon="lucide:wind" class="text-blue-400 group-hover:text-white text-xl"></iconify-icon>
+                    </div>
+                    <span class="font-bold text-white">AC Repair</span>
+                </a>
+                <a href="{{ url_for('view_service', service_name='Appliance Service: Washing Machine Repair') }}" class="p-4 bg-slate-900 border border-white/10 rounded-xl hover:border-emerald-500/50 transition-colors flex items-center gap-4 group">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center group-hover:bg-emerald-500 transition-colors">
+                        <iconify-icon icon="lucide:shirt" class="text-emerald-400 group-hover:text-white text-xl"></iconify-icon>
+                    </div>
+                    <span class="font-bold text-white">Washing Machine Repair</span>
+                </a>
+                <a href="{{ url_for('view_service', service_name='Appliance Service: Refrigerator Repair') }}" class="p-4 bg-slate-900 border border-white/10 rounded-xl hover:border-purple-500/50 transition-colors flex items-center gap-4 group">
+                    <div class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center group-hover:bg-purple-500 transition-colors">
+                        <iconify-icon icon="lucide:snowflake" class="text-purple-400 group-hover:text-white text-xl"></iconify-icon>
+                    </div>
+                    <span class="font-bold text-white">Refrigerator Repair</span>
+                </a>
+                <a href="{{ url_for('view_service', service_name='Appliance Service: TV Repair') }}" class="p-4 bg-slate-900 border border-white/10 rounded-xl hover:border-rose-500/50 transition-colors flex items-center gap-4 group">
+                    <div class="w-10 h-10 rounded-lg bg-rose-500/20 flex items-center justify-center group-hover:bg-rose-500 transition-colors">
+                        <iconify-icon icon="lucide:tv" class="text-rose-400 group-hover:text-white text-xl"></iconify-icon>
+                    </div>
+                    <span class="font-bold text-white">TV Repair</span>
+                </a>
             </div>
         </div>
     </div>
 
     <script>
-        function toggleBookingsModal() {
-            const modal = document.getElementById('bookingsModal');
-            modal.classList.toggle('active');
-        }
-        function openRatingModal(reqId, empName) {
-            const modal = document.getElementById('ratingModal');
-            const form = document.getElementById('ratingForm');
-            const nameDisp = document.getElementById('rating-professional-name');
-            
-            form.action = `/submit_rating/${reqId}`;
-            nameDisp.innerText = `Professional: ${empName}`;
-            modal.classList.add('active');
-            
-            // Reset rating
-            setRating(0);
+        function toggleNotifications(event) {
+            if (event) event.stopPropagation();
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.classList.toggle('hidden');
         }
 
-        function toggleRatingModal() {
-            document.getElementById('ratingModal').classList.toggle('active');
-        }
-
-        function setRating(val) {
-            const labels = document.querySelectorAll('.star-rating label');
-            const display = document.getElementById('rating-value-display');
-            
-            if (val === 0) {
-                labels.forEach(l => l.style.opacity = '0.3');
-                display.innerText = 'Select stars';
-                return;
+        // Close dropdowns and modals when clicking outside
+        window.addEventListener('click', function(e) {
+            const notifWrapper = document.getElementById('notifWrapper');
+            const notifDropdown = document.getElementById('notificationDropdown');
+            if (notifWrapper && notifDropdown && !notifWrapper.contains(e.target)) {
+                notifDropdown.classList.add('hidden');
             }
+        });
 
-            labels.forEach((l, index) => {
-                // Since they are in order 5, 4, 3, 2, 1 in HTML for some systems, 
-                // but here I just want to highlight the first 'val' ones.
-                // Actually my HTML has them 5 to 1. Let's fix logic or HTML.
-                // Let's just use simple logic based on value.
-            });
-            
-            // Simpler: highlight based on radio value
-            const radios = document.querySelectorAll('input[name="rating"]');
-            radios.forEach(r => {
-                if (r.value == val) r.checked = true;
-            });
-            
-            // Visual feedback
-            labels.forEach(l => {
-                const rId = l.getAttribute('for');
-                const rVal = document.getElementById(rId).value;
-                l.style.opacity = rVal <= val ? '1' : '0.3';
-            });
-            
-            display.innerText = `${val} Star${val > 1 ? 's' : ''}`;
-        }
-
-        function toggleWithdrawBalance() {
-            const modal = document.getElementById('withdrawBalanceModal');
-            modal.classList.toggle('active');
-        }
-
-        function toggleProfile() {
-
-            const modal = document.getElementById('profileModal');
-            modal.classList.toggle('active');
-        }
-
-        function toggleEditProfile() {
-            const modal = document.getElementById('editProfileModal');
-            modal.classList.toggle('active');
-        }
-
-        function toggleDeposit() {
-            const modal = document.getElementById('depositModal');
-            modal.classList.toggle('active');
-        }
-
-        function toggleApplianceModal() {
-            const modal = document.getElementById('applianceModal');
-            modal.classList.toggle('active');
-        }
-
-        function toggleEditPassword() {
-            const input = document.getElementById('edit_password');
-            const icon = document.getElementById('editEyeIcon');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
-            } else {
-                input.type = 'password';
-                icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
-            }
-        }
-
-        // Close modals on backdrop click
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', function(e) {
                 if (e.target === this) {
@@ -550,7 +467,41 @@
                 }
             });
         });
+
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(() => {
+            document.querySelectorAll('.flash-message').forEach(msg => {
+                msg.style.opacity = '0';
+                setTimeout(() => msg.style.display = 'none', 500);
+            });
+        }, 5000);
+
+        // Search functionality
+        const searchBar = document.getElementById('search-bar');
+        const servicesGrid = document.getElementById('services-grid');
+        
+        if (searchBar && servicesGrid) {
+            searchBar.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const serviceCards = servicesGrid.children;
+                
+                Array.from(serviceCards).forEach(card => {
+                    const titleElement = card.querySelector('h3');
+                    const descElement = card.querySelector('p');
+                    
+                    if (titleElement && descElement) {
+                        const title = titleElement.textContent.toLowerCase();
+                        const desc = descElement.textContent.toLowerCase();
+                        
+                        if (title.includes(searchTerm) || desc.includes(searchTerm)) {
+                            card.style.display = '';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        }
     </script>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

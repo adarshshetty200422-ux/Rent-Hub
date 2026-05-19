@@ -70,6 +70,10 @@
                             <span class="value">{{ employee.gmail }}</span>
                         </div>
                         <div class="profile-row">
+                            <span class="label">Employee Type</span>
+                            <span class="value">{{ employee.employee_type or 'Registered Professional' }}</span>
+                        </div>
+                        <div class="profile-row">
                             <span class="label">Work Details</span>
                             <span class="value">{{ employee.work_details }}</span>
                         </div>
@@ -80,6 +84,10 @@
                         <div class="profile-row">
                             <span class="label">Work Done (This Month)</span>
                             <span class="value" style="font-weight: 600; color: var(--success);">{{ work_done_month }} Services Completed</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="label">Total Work Done</span>
+                            <span class="value" style="font-weight: 700; color: var(--primary);">{{ total_work_done }} Total Jobs Finished</span>
                         </div>
                         <div class="profile-row">
                             <span class="label">Availability</span>
@@ -96,85 +104,73 @@
                             <span class="badge badge-approved">{{ employee.account_status }}</span>
                             {% endif %}
                         </div>
-                        <div class="profile-row"
-                            style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
-                            <span class="label" style="color: var(--accent); font-weight: 600;">Saved Bank
-                                Details</span>
-                        </div>
 
-                        <div class="profile-row">
-                            <span class="label">Acc Holder</span>
-                            <span class="value">{{ employee.bank_account_name or 'N/A' }}</span>
-                        </div>
-                        <div class="profile-row">
-                            <span class="label">Acc Number</span>
-                            <span class="value">{{ employee.bank_account_number or 'N/A' }}</span>
-                        </div>
-                        <div class="profile-row">
-                            <span class="label">IFSC Code</span>
-                            <span class="value">{{ employee.bank_ifsc or 'N/A' }}</span>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Withdrawal History Section -->
+
+
+        <!-- Work History Section -->
         <div class="section">
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">
-                        <span class="icon"><i class="fa-solid fa-money-bill-transfer"></i></span> Withdrawal History
-                        <span class="badge badge-approved" style="margin-left: 10px;">Deposit: ₹{{
-                            employee.deposit_balance or 0.0 }}</span>
+                        <span class="icon"><i class="fa-solid fa-history"></i></span> Recent Work History
                     </div>
                 </div>
-                <div class="card-body">
-                    {% if withdrawals %}
-                    <p style="color: var(--text-muted); margin-bottom: 10px; font-size: 15px;">Slide to view details and
-                        select a request.</p>
-                    <div class="withdrawal-slider-container">
-                        <div class="withdrawal-slider">
-                            {% for w in withdrawals %}
-                            <div class="withdrawal-card" onclick="this.classList.toggle('selected')">
-                                <span class="status-badge 
-                                    {% if w.status == 'Approved' %}badge-approved
-                                    {% elif w.status == 'Rejected' %}badge-blocked
-                                    {% else %}badge-pending{% endif %}">
-                                    {{ w.status }}
-                                </span>
-                                <span class="amount">₹{{ w.amount }}</span>
-                                <span class="date"><i class="fa-solid fa-calendar-day"></i> {{ w.requested_at }}</span>
-                                <div class="bank-info">
-                                    <i class="fa-solid fa-building-columns"></i>
-                                    {{ w.bank_details or 'No details provided' }}
-                                </div>
-                                {% if w.status == 'Pending' %}
-                                <div class="actions">
-                                    <form
-                                        action="{{ url_for('admin_handle_withdrawal', req_id=w.id, action='approve') }}"
-                                        method="POST" style="flex: 1;">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-success btn-sm btn-block">Approve</button>
-                                    </form>
-                                    <form
-                                        action="{{ url_for('admin_handle_withdrawal', req_id=w.id, action='reject') }}"
-                                        method="POST" style="flex: 1;">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-danger btn-sm btn-block">Reject</button>
-                                    </form>
-                                </div>
+                <div class="card-body no-pad">
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Status</th>
+                                    <th>Rating</th>
+                                    <th>Date</th>
+                                    <th>Review</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if work_history %}
+                                {% for work in work_history %}
+                                <tr>
+                                    <td>{{ work.user_name }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if work.status == 'Completed' %}badge-approved
+                                            {% elif work.status == 'Rejected' %}badge-blocked
+                                            {% else %}badge-pending{% endif %}">
+                                            {{ work.status }}
+                                        </span>
+                                    </td>
+                                    <td style="color: #f1c40f;">
+                                        {% if work.rating %}
+                                        <i class="fa-solid fa-star"></i> {{ work.rating }}
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ work.created_at }}</td>
+                                    <td style="font-size: 14px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ work.review or '' }}">
+                                        {{ work.review or 'No review' }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="empty-state">
+                                            <div class="empty-icon">📂</div>
+                                            <p>No work history recorded yet.</p>
+                                        </div>
+                                    </td>
+                                </tr>
                                 {% endif %}
-                            </div>
-                            {% endfor %}
-                        </div>
+                            </tbody>
+                        </table>
                     </div>
-                    {% else %}
-                    <div class="empty-state">
-                        <div class="empty-icon">💸</div>
-                        <p>No withdrawal history found for this employee.</p>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -199,6 +195,37 @@
                         </div>
                         <button type="submit" class="btn btn-warning btn-block" id="send-warning-btn">
                             <i class="fa-solid fa-paper-plane"></i> Send Warning
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Update Rating -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title" style="color: #f1c40f;">
+                        <span class="icon"><i class="fa-solid fa-star"></i></span> Update Rating
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 15px;">Current Rating: 
+                        <strong style="color: #f1c40f;">{{ "%.1f"|format(employee.rating or 0.0) }} ⭐</strong> 
+                        ({{ employee.rating_count or 0 }} reviews)
+                    </p>
+                    <form action="{{ url_for('admin_update_rating', emp_id=employee.id) }}" method="POST" style="display: flex; flex-direction: column; gap: 14px;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="form-group">
+                            <label style="font-size: 14px; color: var(--text-secondary); margin-bottom: 5px; display: block;">Set New Rating (1-5)</label>
+                            <select name="new_rating" required style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; background: var(--card-bg); color: var(--text);">
+                                <option value="5.0" {% if (employee.rating or 0.0) >= 4.5 %}selected{% endif %}>5.0 ⭐</option>
+                                <option value="4.0" {% if (employee.rating or 0.0) >= 3.5 and (employee.rating or 0.0) < 4.5 %}selected{% endif %}>4.0 ⭐</option>
+                                <option value="3.0" {% if (employee.rating or 0.0) >= 2.5 and (employee.rating or 0.0) < 3.5 %}selected{% endif %}>3.0 ⭐</option>
+                                <option value="2.0" {% if (employee.rating or 0.0) >= 1.5 and (employee.rating or 0.0) < 2.5 %}selected{% endif %}>2.0 ⭐</option>
+                                <option value="1.0" {% if (employee.rating or 0.0) < 1.5 %}selected{% endif %}>1.0 ⭐</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="fa-solid fa-check"></i> Update Rating
                         </button>
                     </form>
                 </div>
