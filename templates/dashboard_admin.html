@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rent Hub | Admin Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="{{ url_for('static', filename='js/tailwind.min.js') }}"></script>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,10 +48,8 @@
         <!-- Sidebar -->
         <aside class="w-72 bg-[#020617] border-r border-white/5 flex flex-col fixed h-full z-50">
             <div class="p-6 flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                    <iconify-icon icon="lucide:shield-check" class="text-white text-xl"></iconify-icon>
-                </div>
-                <span class="text-xl font-bold tracking-tight text-white">Rent Hub Admin</span>
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Rent Hub Logo" class="h-10 w-auto object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/150x50?text=Rent+Hub';">
+                <span class="text-xl font-bold tracking-tight text-white">Rent Hub <span class="text-xs bg-blue-500/10 text-blue-400 font-bold px-2 py-0.5 rounded border border-blue-500/20 uppercase tracking-tighter ml-1">Admin</span></span>
             </div>
 
             <nav class="flex-1 px-4 mt-4 space-y-1">
@@ -527,6 +525,38 @@
                         <button type="button" onclick="toggleEditPassword()" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
                             <iconify-icon icon="lucide:eye" id="editEyeIcon"></iconify-icon>
                         </button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-400 text-sm mb-2">Work Details</label>
+                    <div class="flex flex-col gap-2 mt-2 bg-slate-900 border border-white/10 rounded-xl p-4 max-h-48 overflow-y-auto">
+                        <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                            <input type="checkbox" name="work_details" value="Moving / Shifting Service" {% if admin_info.work_details and 'Moving / Shifting Service' in admin_info.work_details %}checked{% endif %} class="accent-blue-500 w-4 h-4 rounded border-white/10 bg-slate-800"> Moving / Shifting Service
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                            <input type="checkbox" name="work_details" value="Cleaning Service" {% if admin_info.work_details and 'Cleaning Service' in admin_info.work_details %}checked{% endif %} class="accent-blue-500 w-4 h-4 rounded border-white/10 bg-slate-800"> Cleaning Service
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                            <input type="checkbox" name="work_details" value="Plumbing" {% if admin_info.work_details and 'Plumbing' in admin_info.work_details %}checked{% endif %} class="accent-blue-500 w-4 h-4 rounded border-white/10 bg-slate-800"> Plumber
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                            <input type="checkbox" name="work_details" value="Electrician" {% if admin_info.work_details and 'Electrician' in admin_info.work_details %}checked{% endif %} class="accent-blue-500 w-4 h-4 rounded border-white/10 bg-slate-800"> Electrician
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                            <input type="checkbox" name="work_details" value="Catering" {% if admin_info.work_details and 'Catering' in admin_info.work_details %}checked{% endif %} class="accent-blue-500 w-4 h-4 rounded border-white/10 bg-slate-800"> Catering Services
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                            <input type="checkbox" name="work_details" value="Furniture Rental Service" {% if admin_info.work_details and 'Furniture Rental Service' in admin_info.work_details %}checked{% endif %} class="accent-blue-500 w-4 h-4 rounded border-white/10 bg-slate-800"> Furniture Rental Service
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                            <input type="checkbox" id="admin_update_master_appliance_checkbox" onchange="document.getElementById('admin_update_appliance_sub_options').style.display = this.checked ? 'grid' : 'none'; if(!this.checked) { document.querySelectorAll('#admin_update_appliance_sub_options input').forEach(cb => cb.checked = false); }" {% if admin_info.work_details and 'Appliance Service' in admin_info.work_details %}checked{% endif %} class="accent-blue-500 w-4 h-4 rounded border-white/10 bg-slate-800"> Appliance Repair
+                        </label>
+                        <div id="admin_update_appliance_sub_options" class="mt-2 {% if admin_info.work_details and 'Appliance Service' in admin_info.work_details %}grid{% else %}hidden{% endif %}" style="grid-template-columns: 1fr 1fr; gap: 10px; margin-left: 15px; border-left: 2px solid rgba(255,255,255,0.1); padding-left: 15px;">
+                            <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-400 hover:text-white"><input type="checkbox" name="work_details" value="Appliance Service: AC Repair" {% if admin_info.work_details and 'Appliance Service: AC Repair' in admin_info.work_details %}checked{% endif %} class="accent-blue-500"> AC Repair</label>
+                            <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-400 hover:text-white"><input type="checkbox" name="work_details" value="Appliance Service: Washing Machine Repair" {% if admin_info.work_details and 'Appliance Service: Washing Machine Repair' in admin_info.work_details %}checked{% endif %} class="accent-blue-500"> Washing Machine</label>
+                            <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-400 hover:text-white"><input type="checkbox" name="work_details" value="Appliance Service: Refrigerator Repair" {% if admin_info.work_details and 'Appliance Service: Refrigerator Repair' in admin_info.work_details %}checked{% endif %} class="accent-blue-500"> Refrigerator</label>
+                            <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-400 hover:text-white"><input type="checkbox" name="work_details" value="Appliance Service: TV Repair" {% if admin_info.work_details and 'Appliance Service: TV Repair' in admin_info.work_details %}checked{% endif %} class="accent-blue-500"> TV Repair</label>
+                        </div>
                     </div>
                 </div>
                 

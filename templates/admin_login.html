@@ -12,9 +12,9 @@
 
 <body class="auth-body">
     <div class="auth-container">
-        <div class="logo">
-            <div class="logo-icon">🛡️</div>
-            <div class="logo-text">Rent Hub</div>
+        <div class="logo" style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Rent Hub Logo" style="height: 48px; width: auto; object-fit: contain;" onerror="this.onerror=null; this.src='https://via.placeholder.com/150x50?text=Rent+Hub';">
+            <span style="font-weight: 800; font-size: 1.75rem; color: white; letter-spacing: -0.025em;">Rent Hub</span>
         </div>
 
         <h2>Admin Authentication</h2>

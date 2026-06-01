@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rent Hub | Employee Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="{{ url_for('static', filename='js/tailwind.min.js') }}"></script>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -58,10 +58,10 @@
         <!-- Top Navigation -->
         <nav class="fixed top-0 left-0 right-0 z-50 bg-[#020617]/90 backdrop-blur-md border-b border-white/5 px-8 py-4 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <div class="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
-                    <iconify-icon icon="lucide:home" class="text-white text-lg"></iconify-icon>
-                </div>
-                <span class="text-xl font-bold tracking-tight text-white">Rent Hub</span>
+                <a href="/" class="flex items-center gap-2">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Rent Hub Logo" class="h-10 w-auto object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/150x50?text=Rent+Hub';">
+                    <span class="text-xl font-bold tracking-tight text-white">Rent Hub</span>
+                </a>
             </div>
 
             <div class="flex items-center gap-6">
@@ -385,7 +385,10 @@
                                         <span class="text-emerald-400">{{ "%.1f"|format(employee.rating or 0.0) }}/5</span>
                                     </div>
                                     <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                                        <div class="h-full bg-emerald-500" {{ 'style="width: %.1f%%;"' | format(((employee.rating or 0.0) / 5) * 100) | safe }}></div>
+                                        <div id="rating-bar-progress" class="h-full bg-emerald-500"></div>
+                                        <script>
+                                            document.getElementById('rating-bar-progress').style.width = '{{ "%.1f"|format(((employee.rating or 0.0) / 5) * 100) }}%';
+                                        </script>
                                     </div>
                                 </div>
                                 <div>
@@ -446,6 +449,38 @@
                         <option value="Agency / Company" {% if employee.employee_type == 'Agency / Company' %}selected{% endif %}>Agency / Company</option>
                         <option value="Independent Freelancer" {% if employee.employee_type == 'Independent Freelancer' %}selected{% endif %}>Independent Freelancer</option>
                     </select>
+                </div>
+                <div>
+                    <label class="block text-gray-400 text-sm mb-2">Work Details</label>
+                    <div class="flex flex-col gap-2 mt-2 bg-slate-900 border border-white/10 rounded-xl p-4 max-h-48 overflow-y-auto">
+                        <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                            <input type="checkbox" name="work_details" value="Moving / Shifting Service" {% if employee.work_details and 'Moving / Shifting Service' in employee.work_details %}checked{% endif %} class="accent-blue-500 w-4 h-4 rounded border-white/10 bg-slate-800"> Moving / Shifting Service
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                            <input type="checkbox" name="work_details" value="Cleaning Service" {% if employee.work_details and 'Cleaning Service' in employee.work_details %}checked{% endif %} class="accent-blue-500 w-4 h-4 rounded border-white/10 bg-slate-800"> Cleaning Service
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                            <input type="checkbox" name="work_details" value="Plumbing" {% if employee.work_details and 'Plumbing' in employee.work_details %}checked{% endif %} class="accent-blue-500 w-4 h-4 rounded border-white/10 bg-slate-800"> Plumber
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                            <input type="checkbox" name="work_details" value="Electrician" {% if employee.work_details and 'Electrician' in employee.work_details %}checked{% endif %} class="accent-blue-500 w-4 h-4 rounded border-white/10 bg-slate-800"> Electrician
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                            <input type="checkbox" name="work_details" value="Catering" {% if employee.work_details and 'Catering' in employee.work_details %}checked{% endif %} class="accent-blue-500 w-4 h-4 rounded border-white/10 bg-slate-800"> Catering Services
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                            <input type="checkbox" name="work_details" value="Furniture Rental Service" {% if employee.work_details and 'Furniture Rental Service' in employee.work_details %}checked{% endif %} class="accent-blue-500 w-4 h-4 rounded border-white/10 bg-slate-800"> Furniture Rental Service
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                            <input type="checkbox" id="update_master_appliance_checkbox" onchange="document.getElementById('update_appliance_sub_options').style.display = this.checked ? 'grid' : 'none'; if(!this.checked) { document.querySelectorAll('#update_appliance_sub_options input').forEach(cb => cb.checked = false); }" {% if employee.work_details and 'Appliance Service' in employee.work_details %}checked{% endif %} class="accent-blue-500 w-4 h-4 rounded border-white/10 bg-slate-800"> Appliance Repair
+                        </label>
+                        <div id="update_appliance_sub_options" class="mt-2 {% if employee.work_details and 'Appliance Service' in employee.work_details %}grid{% else %}hidden{% endif %}" style="grid-template-columns: 1fr 1fr; gap: 10px; margin-left: 15px; border-left: 2px solid rgba(255,255,255,0.1); padding-left: 15px;">
+                            <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-400 hover:text-white"><input type="checkbox" name="work_details" value="Appliance Service: AC Repair" {% if employee.work_details and 'Appliance Service: AC Repair' in employee.work_details %}checked{% endif %} class="accent-blue-500"> AC Repair</label>
+                            <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-400 hover:text-white"><input type="checkbox" name="work_details" value="Appliance Service: Washing Machine Repair" {% if employee.work_details and 'Appliance Service: Washing Machine Repair' in employee.work_details %}checked{% endif %} class="accent-blue-500"> Washing Machine</label>
+                            <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-400 hover:text-white"><input type="checkbox" name="work_details" value="Appliance Service: Refrigerator Repair" {% if employee.work_details and 'Appliance Service: Refrigerator Repair' in employee.work_details %}checked{% endif %} class="accent-blue-500"> Refrigerator</label>
+                            <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-400 hover:text-white"><input type="checkbox" name="work_details" value="Appliance Service: TV Repair" {% if employee.work_details and 'Appliance Service: TV Repair' in employee.work_details %}checked{% endif %} class="accent-blue-500"> TV Repair</label>
+                        </div>
+                    </div>
                 </div>
                 <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-colors mt-6">Save Changes</button>
             </form>

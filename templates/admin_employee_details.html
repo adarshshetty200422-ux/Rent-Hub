@@ -14,9 +14,9 @@
 <body class="dashboard-body">
     <!-- Navbar -->
     <nav class="navbar">
-        <div class="nav-brand">
-            <div class="nav-brand-icon">🏠</div>
-            <span>Rent Hub</span>
+        <div class="nav-brand" style="display: flex; align-items: center; gap: 10px;">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Rent Hub Logo" style="height: 35px; width: auto; object-fit: contain;" onerror="this.onerror=null; this.src='https://via.placeholder.com/150x50?text=Rent+Hub';">
+            <span style="font-weight: 700; font-size: 1.25rem; color: white;">Rent Hub</span>
         </div>
         <div class="nav-actions">
             <a href="{{ url_for('dashboard_admin') }}" class="btn-nav-profile" id="back-to-dashboard">
@@ -216,7 +216,7 @@
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="form-group">
                             <label style="font-size: 14px; color: var(--text-secondary); margin-bottom: 5px; display: block;">Set New Rating (1-5)</label>
-                            <select name="new_rating" required style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; background: var(--card-bg); color: var(--text);">
+                            <select name="new_rating" required style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text-primary);">
                                 <option value="5.0" {% if (employee.rating or 0.0) >= 4.5 %}selected{% endif %}>5.0 ⭐</option>
                                 <option value="4.0" {% if (employee.rating or 0.0) >= 3.5 and (employee.rating or 0.0) < 4.5 %}selected{% endif %}>4.0 ⭐</option>
                                 <option value="3.0" {% if (employee.rating or 0.0) >= 2.5 and (employee.rating or 0.0) < 3.5 %}selected{% endif %}>3.0 ⭐</option>
