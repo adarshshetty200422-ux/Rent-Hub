@@ -9,23 +9,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
-    <style>
-        .stars {
-            display: flex;
-            cursor: pointer;
-            font-size: 30px;
-            color: #ccc;
-            justify-content: center;
-            gap: 5px;
-            margin: 15px 0;
-        }
-        .stars span {
-            transition: color 0.2s;
-        }
-        .stars span.active {
-            color: gold;
-        }
-    </style>
 </head>
 
 <body class="dashboard-body">
@@ -139,62 +122,42 @@
                     </form>
                     {% endif %}
 
-                    <div style="margin-top: 30px; text-align: center; padding-top: 20px; border-top: 1px solid var(--border);">
-                        <h3 style="color: var(--text-primary); font-size: 1.2rem;">Rate this Profile:</h3>
-                        
-                        <div class="stars" id="starRating">
-                            <span data-value="1">★</span>
-                            <span data-value="2">★</span>
-                            <span data-value="3">★</span>
-                            <span data-value="4">★</span>
-                            <span data-value="5">★</span>
+                    <div style="margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--border);">
+                        <h3 style="color: var(--text-primary); font-size: 1.25rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fa-solid fa-award" style="color: #3b82f6;"></i>
+                            Performance Metrics
+                        </h3>
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px;">
+                                    <span>Trust Rating</span>
+                                    <span style="color: #10b981; font-weight: 700;">{{ "%.1f"|format(employee.rating or 0.0) }}/5</span>
+                                </div>
+                                <div style="height: 6px; width: 100%; background: rgba(255, 255, 255, 0.05); border-radius: 9999px; overflow: hidden; position: relative;">
+                                    <div id="trust-rating-progress" style="height: 100%; background: #10b981; border-radius: 9999px; width: 0%;"></div>
+                                    <script>
+                                        document.getElementById('trust-rating-progress').style.width = '{{ "%.1f"|format(((employee.rating or 0.0) / 5) * 100) }}%';
+                                    </script>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px;">
+                                    <span>Active Factor</span>
+                                    <span style="color: #3b82f6; font-weight: 700;">High</span>
+                                </div>
+                                <div style="height: 6px; width: 100%; background: rgba(255, 255, 255, 0.05); border-radius: 9999px; overflow: hidden; position: relative;">
+                                    <div style="height: 100%; background: #3b82f6; border-radius: 9999px; width: 92%;"></div>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <p id="ratingValue" style="color: var(--text-secondary); font-weight: 500;">Rating: 0</p>
                     </div>
+
 
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        const stars = document.querySelectorAll("#starRating span");
-        const ratingText = document.getElementById("ratingValue");
-
-        stars.forEach(star => {
-            star.addEventListener("click", () => {
-                let value = star.getAttribute("data-value");
-
-                stars.forEach(s => s.classList.remove("active"));
-
-                for (let i = 0; i < value; i++) {
-                    stars[i].classList.add("active");
-                }
-
-                ratingText.innerText = "Rating: " + value;
-                
-                // Send to backend
-                fetch(`/rate_profile/{{ employee.id }}`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": document.querySelector('input[name="csrf_token"]').value
-                    },
-                    body: JSON.stringify({ rating: value })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.average) {
-                        ratingText.innerText = "Average Rating: " + data.average.toFixed(1);
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1000); // Reload after 1 second to see the updated stars
-                    }
-                });
-            });
-        });
-    </script>
 </body>
 
 </html>

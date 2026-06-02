@@ -459,8 +459,8 @@ def user_add_deposit():
     amount_str = request.form.get("amount")
     try:
         amount = float(amount_str or 0)
-        if amount <= 0:
-            flash("Deposit amount must be greater than zero.", "error")
+        if amount < 2000:
+            flash("Minimum deposit amount is ₹2000.", "error")
             return redirect(url_for("dashboard_user"))
 
         try:
@@ -512,12 +512,26 @@ def dashboard_user():
             (user_id,),
         ).fetchone()[0]
 
+        # Fetch bookings with employee details
+        bookings = conn.execute(
+            """
+            SELECT sr.id, sr.status, sr.rating as request_rating, sr.review,
+                   emp.username as employee_name, emp.rating as employee_rating, emp.work_details as service_type
+            FROM service_requests sr
+            JOIN users emp ON sr.employee_id = emp.id
+            WHERE sr.user_id = ?
+            ORDER BY sr.id DESC
+            """,
+            (user_id,),
+        ).fetchall()
+
     return render_template(
         "dashboard_user.html",
         user_info=user_info,
         user_messages=user_messages,
         total_bookings=total_bookings,
         active_rentals=active_rentals,
+        bookings=bookings,
     )
 
 
@@ -540,7 +554,7 @@ def dashboard_employee():
 
             service_requests = conn.execute(
                 """
-                SELECT sr.id, sr.status, sr.rating, u.username as user_name, u.gmail as user_gmail
+                SELECT sr.id, sr.status, sr.rating, sr.review, u.username as user_name, u.gmail as user_gmail
                 FROM service_requests sr
                 JOIN users u ON sr.user_id = u.id
                 WHERE sr.employee_id = ?
@@ -1022,9 +1036,9 @@ def book_service(emp_id):
                         employee['username']}' is not available.", "error")
                 return redirect(request.referrer or url_for("dashboard_user"))
 
-            if (user["deposit_balance"] or 0.0) < 500.0:
+            if (user["deposit_balance"] or 0.0) < 2000.0:
                 flash(
-                    "You cannot book this service because your advance deposit balance is below ₹500.",
+                    "You cannot book this service because your advance deposit balance is below ₹2000.",
                     "error",
                 )
                 return redirect(request.referrer or url_for("dashboard_user"))
@@ -1173,7 +1187,7 @@ def submit_rating(req_id):
             # Update employee average rating
             emp_id = req["employee_id"]
             emp_stats = conn.execute(
-                "SELECT rating, rating_count FROM users WHERE id = ?", (emp_id,)
+                "SELECT username, gmail, rating, rating_count FROM users WHERE id = ?", (emp_id,)
             ).fetchone()
 
             curr_rating = emp_stats["rating"] or 0.0
@@ -1185,6 +1199,19 @@ def submit_rating(req_id):
             conn.execute(
                 "UPDATE users SET rating = ?, rating_count = ? WHERE id = ?",
                 (new_rating, new_count, emp_id),
+            )
+
+            # Get user name of the customer who submitted the rating
+            customer = conn.execute(
+                "SELECT username FROM users WHERE id = ?", (user_id,)
+            ).fetchone()
+            cust_name = customer["username"] if customer else "A customer"
+
+            # Create message for employee
+            emp_msg = f"Customer '{cust_name}' has rated your service {rating_val} stars and left a review: '{review}'."
+            conn.execute(
+                "INSERT INTO employee_messages (gmail, message) VALUES (?, ?)",
+                (emp_stats["gmail"], emp_msg),
             )
 
             conn.commit()
@@ -1282,12 +1309,24 @@ def complete_service(req_id):
                 (employee_id,),
             )
 
-            # Message to user
+            # Get employee info
+            emp = conn.execute(
+                "SELECT username, rating, work_details FROM users WHERE id = ?",
+                (employee_id,),
+            ).fetchone()
+            emp_name = emp["username"] if emp else "Professional"
+            emp_rating = emp["rating"] if (emp and emp["rating"] is not None) else 0.0
+            emp_work = emp["work_details"] if emp else "Service"
+            if emp_work and "," in emp_work:
+                emp_work = emp_work.split(",")[0].strip()
+
+            # Message to user including the request type (work detail) and the rating of the employee who claimed it
+            msg = f"Your service request for {emp_work} has been marked as completed. The professional who claimed it, {emp_name}, has a rating of {emp_rating:.1f}/5.0."
             conn.execute(
                 "INSERT INTO user_messages (user_id, message) VALUES (?, ?)",
                 (
                     req["user_id"],
-                    "Your service has been marked as completed. Please rate the professional in your dashboard.",
+                    msg,
                 ),
             )
 

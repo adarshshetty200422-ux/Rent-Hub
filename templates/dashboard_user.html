@@ -156,56 +156,8 @@
                 </div>
             </div>
 
-            <!-- Dashboard Top Row: Active & Timeline -->
-            <div class="grid grid-cols-1 gap-8 mb-12">
-                <!-- My Active Bookings -->
-                <div class="glass-card rounded-[2rem] p-8">
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="flex items-center gap-3">
-                            <iconify-icon icon="lucide:activity" class="text-emerald-500 text-xl"></iconify-icon>
-                            <h2 class="text-xl font-bold">My Active Bookings</h2>
-                        </div>
-                        <a href="#" id="view-all-bookings" class="text-sm text-blue-400 hover:text-blue-300 font-semibold">View All</a>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-blue-500/30 transition-all cursor-pointer">
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                                    <iconify-icon icon="lucide:droplets" class="text-blue-500 text-xl"></iconify-icon>
-                                </div>
-                                <span class="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-[10px] font-bold rounded uppercase tracking-wider">In Progress</span>
-                            </div>
-                            <h3 class="font-bold text-sm mb-1">Expert Plumbing</h3>
-                            <p class="text-gray-500 text-xs mb-3">Main bathroom leak repair</p>
-                            <div class="flex items-center justify-between pt-3 border-t border-white/5">
-                                <span class="text-gray-400 text-[10px]">Ends: Today, 5:00 PM</span>
-                                <iconify-icon icon="lucide:chevron-right" class="text-gray-600"></iconify-icon>
-                            </div>
-                        </div>
-
-                        <div class="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-blue-500/30 transition-all cursor-pointer">
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                                    <iconify-icon icon="lucide:brush" class="text-purple-500 text-xl"></iconify-icon>
-                                </div>
-                                <span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-[10px] font-bold rounded uppercase tracking-wider">Scheduled</span>
-                            </div>
-                            <h3 class="font-bold text-sm mb-1">Cleaning Service</h3>
-                            <p class="text-gray-500 text-xs mb-3">Full apartment deep clean</p>
-                            <div class="flex items-center justify-between pt-3 border-t border-white/5">
-                                <span class="text-gray-400 text-[10px]">Starts: Oct 28, 9:00 AM</span>
-                                <iconify-icon icon="lucide:chevron-right" class="text-gray-600"></iconify-icon>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-
             <!-- Services Section -->
-            <div class="glass-card rounded-[2.5rem] p-8">
+            <div class="glass-card rounded-[2.5rem] p-8 mb-12">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                     <div>
                         <div class="flex items-center gap-3 mb-2">
@@ -214,8 +166,6 @@
                         </div>
                         <p class="text-gray-400 text-sm">Top-rated professionals for all your rental and home needs.</p>
                     </div>
-                    
-
                 </div>
 
                 <!-- Services Grid -->
@@ -303,6 +253,101 @@
                             <a href="{{ url_for('view_service', service_name='Furniture Rental Service') }}" class="block text-center w-full py-3 bg-white/5 hover:bg-blue-600 hover:text-white text-blue-400 rounded-xl text-xs font-bold transition-all border border-blue-500/10">Book Now</a>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Top Row: Bookings -->
+            <div class="grid grid-cols-1 gap-8 mb-12">
+                <!-- My Bookings -->
+                <div class="glass-card rounded-[2rem] p-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <iconify-icon icon="lucide:activity" class="text-emerald-500 text-xl"></iconify-icon>
+                            <h2 class="text-xl font-bold">My Recent Bookings</h2>
+                        </div>
+                        {% if bookings %}
+                        <button onclick="document.getElementById('allBookingsModal').classList.add('active')" class="text-sm text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1 transition-colors">
+                            View All
+                            <iconify-icon icon="lucide:chevron-right" class="text-sm"></iconify-icon>
+                        </button>
+                        {% endif %}
+                    </div>
+                    
+                    {% if bookings %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {% for booking in bookings[:3] %}
+                        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-blue-500/30 transition-all flex flex-col justify-between">
+                            <div>
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                        <iconify-icon icon="{% if 'Plumb' in booking.service_type %}lucide:droplets{% elif 'Electr' in booking.service_type %}lucide:zap{% elif 'Clean' in booking.service_type %}lucide:brush{% elif 'Cater' in booking.service_type %}lucide:utensils-crossed{% else %}lucide:wrench{% endif %}" class="text-blue-500 text-xl"></iconify-icon>
+                                    </div>
+                                    <span class="px-2.5 py-1 text-[10px] font-extrabold rounded-md border uppercase tracking-wider 
+                                        {% if booking.status == 'Completed' %}bg-blue-500/10 text-blue-400 border-blue-500/20
+                                        {% elif booking.status == 'Accepted' %}bg-emerald-500/10 text-emerald-400 border-emerald-500/20
+                                        {% elif booking.status == 'Rejected' %}bg-rose-500/10 text-rose-400 border-rose-500/20
+                                        {% else %}bg-amber-500/10 text-amber-400 border-amber-500/20{% endif %}">
+                                        {{ booking.status }}
+                                    </span>
+                                </div>
+                                <h3 class="font-extrabold text-base mb-1">{{ booking.service_type }}</h3>
+                                <div class="space-y-2 mt-3">
+                                    <div class="flex items-center gap-2 text-xs text-gray-400">
+                                        <iconify-icon icon="lucide:user" class="text-sm"></iconify-icon>
+                                        <span>Professional: <strong class="text-white">{{ booking.employee_name }}</strong></span>
+                                    </div>
+                                    <div class="flex items-center gap-2 text-xs text-gray-400">
+                                        <iconify-icon icon="lucide:star" class="text-sm text-amber-400"></iconify-icon>
+                                        <span>Trust Rating: <strong class="text-white">{{ "%.1f"|format(booking.employee_rating or 0.0) }} / 5.0</strong></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Rating & Reviews action -->
+                            <div class="mt-6 pt-4 border-t border-white/5">
+                                {% if booking.status == 'Completed' %}
+                                    {% if booking.request_rating is none %}
+                                        <button onclick="openRateModal('{{ booking.id }}', '{{ booking.employee_name }}')" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg flex items-center justify-center gap-2">
+                                            <iconify-icon icon="lucide:star-half"></iconify-icon>
+                                            Rate Professional
+                                        </button>
+                                    {% else %}
+                                        <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex flex-col gap-1">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Your Rating</span>
+                                                <div class="flex gap-0.5">
+                                                    {% for i in range(booking.request_rating) %}
+                                                    <iconify-icon icon="lucide:star" class="text-xs text-amber-400"></iconify-icon>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            {% if booking.review %}
+                                            <p class="text-[11px] text-gray-300 italic">"{{ booking.review }}"</p>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider text-center py-1">
+                                        {% if booking.status == 'Pending' %}
+                                            Awaiting acceptance
+                                        {% elif booking.status == 'Accepted' %}
+                                            Service is in progress
+                                        {% else %}
+                                            Booking concluded
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="p-12 text-center bg-white/[0.02] border border-white/5 rounded-2xl">
+                        <iconify-icon icon="lucide:calendar-x" class="text-4xl text-gray-500 mb-3"></iconify-icon>
+                        <p class="text-sm text-gray-400">You haven't booked any services yet.</p>
+                        <a href="#services-grid" class="inline-block mt-4 text-xs font-bold text-blue-400 hover:underline">Explore Services</a>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -400,7 +445,8 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div>
                     <label class="block text-gray-400 text-sm mb-2">Amount to Deposit</label>
-                    <input type="number" name="amount" min="1" step="0.01" required placeholder="Enter amount..." class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                    <input type="number" name="amount" min="2000" step="0.01" required placeholder="Enter amount (min ₹2000)..." class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                    <p class="text-[10px] text-amber-400 mt-1.5">Note: Minimum deposit is ₹2000. Users must maintain at least ₹2000 to book services.</p>
                 </div>
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-colors mt-4">Proceed to Pay</button>
             </form>
@@ -498,6 +544,171 @@
                         }
                     }
                 });
+            });
+        }
+    </script>
+    <!-- Rate Professional Modal -->
+    <div class="modal-overlay" id="rateModal">
+        <div class="bg-[#0f172a] border border-white/10 rounded-2xl p-8 w-full max-w-md relative shadow-2xl mx-4">
+            <button onclick="document.getElementById('rateModal').classList.remove('active')" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <iconify-icon icon="lucide:x" class="text-xl"></iconify-icon>
+            </button>
+            <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                <iconify-icon icon="lucide:star" class="text-amber-400"></iconify-icon> 
+                Rate Professional
+            </h3>
+            <p class="text-sm text-gray-400 mb-6">How was your experience with <span id="rate-modal-emp-name" class="text-white font-bold"></span>?</p>
+            
+            <form id="rateForm" method="POST" class="space-y-6">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div>
+                    <label class="block text-gray-400 text-sm font-bold mb-3 uppercase tracking-wider">Select Rating</label>
+                    <div class="flex items-center justify-between px-4 py-3 bg-slate-900 border border-white/10 rounded-xl">
+                        <div class="flex gap-2">
+                            {% for i in range(1, 6) %}
+                            <button type="button" onclick="setStarRating(Number('{{ i }}'))" class="star-btn text-2xl text-gray-600 hover:text-amber-400 transition-colors focus:outline-none" data-rating="{{ i }}">
+                                <iconify-icon icon="lucide:star"></iconify-icon>
+                            </button>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="rating" id="rating-input" required>
+                        <span id="rating-text" class="text-xs font-black text-amber-400 uppercase tracking-widest">Select stars</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-400 text-sm font-bold mb-2 uppercase tracking-wider">Write a Review</label>
+                    <textarea name="review" rows="3" placeholder="Tell us about the service quality, punctuality, etc..." class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 text-sm resize-none"></textarea>
+                </div>
+                
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg">Submit Feedback</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- All Bookings Modal -->
+    <div class="modal-overlay" id="allBookingsModal">
+        <div class="bg-[#0f172a] border border-white/10 rounded-2xl p-8 w-full max-w-5xl relative shadow-2xl mx-4 my-8 flex flex-col max-h-[85vh]">
+            <button onclick="document.getElementById('allBookingsModal').classList.remove('active')" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <iconify-icon icon="lucide:x" class="text-xl"></iconify-icon>
+            </button>
+            <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                <iconify-icon icon="lucide:list" class="text-blue-400"></iconify-icon> 
+                All Bookings History
+            </h3>
+            <p class="text-sm text-gray-400 mb-6">Complete list of all your service requests and bookings.</p>
+            
+            <div class="overflow-y-auto space-y-4 pr-2 flex-grow">
+                {% if bookings %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for booking in bookings %}
+                    <div class="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                    <iconify-icon icon="{% if 'Plumb' in booking.service_type %}lucide:droplets{% elif 'Electr' in booking.service_type %}lucide:zap{% elif 'Clean' in booking.service_type %}lucide:brush{% elif 'Cater' in booking.service_type %}lucide:utensils-crossed{% else %}lucide:wrench{% endif %}" class="text-blue-500 text-xl"></iconify-icon>
+                                </div>
+                                <span class="px-2.5 py-1 text-[10px] font-extrabold rounded-md border uppercase tracking-wider 
+                                    {% if booking.status == 'Completed' %}bg-blue-500/10 text-blue-400 border-blue-500/20
+                                    {% elif booking.status == 'Accepted' %}bg-emerald-500/10 text-emerald-400 border-emerald-500/20
+                                    {% elif booking.status == 'Rejected' %}bg-rose-500/10 text-rose-400 border-rose-500/20
+                                    {% else %}bg-amber-500/10 text-amber-400 border-amber-500/20{% endif %}">
+                                    {{ booking.status }}
+                                </span>
+                            </div>
+                            <h3 class="font-extrabold text-base mb-1">{{ booking.service_type }}</h3>
+                            <div class="space-y-2 mt-3">
+                                <div class="flex items-center gap-2 text-xs text-gray-400">
+                                    <iconify-icon icon="lucide:user" class="text-sm"></iconify-icon>
+                                    <span>Professional: <strong class="text-white">{{ booking.employee_name }}</strong></span>
+                                </div>
+                                <div class="flex items-center gap-2 text-xs text-gray-400">
+                                    <iconify-icon icon="lucide:star" class="text-sm text-amber-400"></iconify-icon>
+                                    <span>Trust Rating: <strong class="text-white">{{ "%.1f"|format(booking.employee_rating or 0.0) }} / 5.0</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Rating & Reviews action -->
+                        <div class="mt-6 pt-4 border-t border-white/5">
+                            {% if booking.status == 'Completed' %}
+                                {% if booking.request_rating is none %}
+                                    <button onclick="document.getElementById('allBookingsModal').classList.remove('active'); openRateModal('{{ booking.id }}', '{{ booking.employee_name }}')" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg flex items-center justify-center gap-2">
+                                        <iconify-icon icon="lucide:star-half"></iconify-icon>
+                                        Rate Professional
+                                    </button>
+                                {% else %}
+                                    <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex flex-col gap-1">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Your Rating</span>
+                                            <div class="flex gap-0.5">
+                                                {% for i in range(booking.request_rating) %}
+                                                <iconify-icon icon="lucide:star" class="text-xs text-amber-400"></iconify-icon>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% if booking.review %}
+                                        <p class="text-[11px] text-gray-300 italic">"{{ booking.review }}"</p>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider text-center py-1">
+                                    {% if booking.status == 'Pending' %}
+                                        Awaiting acceptance
+                                    {% elif booking.status == 'Accepted' %}
+                                        Service is in progress
+                                    {% else %}
+                                        Booking concluded
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-12 text-center bg-white/[0.02] border border-white/5 rounded-2xl">
+                    <p class="text-sm text-gray-400">No bookings to display.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openRateModal(reqId, empName) {
+            document.getElementById('rate-modal-emp-name').textContent = empName;
+            document.getElementById('rateForm').action = "/submit_rating/" + reqId;
+            setStarRating(0); // Reset
+            document.getElementById('rateModal').classList.add('active');
+        }
+
+        function setStarRating(rating) {
+            document.getElementById('rating-input').value = rating > 0 ? rating : '';
+            const stars = document.querySelectorAll('.star-btn');
+            const text = document.getElementById('rating-text');
+            
+            const ratingsMap = {
+                0: 'Select stars',
+                1: 'Poor',
+                2: 'Fair',
+                3: 'Good',
+                4: 'Very Good',
+                5: 'Excellent'
+            };
+            
+            text.textContent = ratingsMap[rating];
+            
+            stars.forEach((star, idx) => {
+                if (idx < rating) {
+                    star.classList.remove('text-gray-600');
+                    star.classList.add('text-amber-400');
+                } else {
+                    star.classList.add('text-gray-600');
+                    star.classList.remove('text-amber-400');
+                }
             });
         }
     </script>

@@ -190,15 +190,16 @@
                         <h3 class="text-4xl font-black font-mono tracking-tighter">₹{{ "%.2f"|format(employee.deposit_balance or 0.0) }}</h3>
                     </div>
 
-                    <div class="glass-card p-6 rounded-3xl relative overflow-hidden group">
+                    <div onclick="document.getElementById('reviewsModal').classList.add('active')" class="glass-card p-6 rounded-3xl relative overflow-hidden group cursor-pointer hover:border-purple-500/30 transition-all">
                         <div class="absolute top-0 right-0 p-4">
                             <iconify-icon icon="lucide:star" class="text-purple-500/20 text-5xl group-hover:scale-110 transition-transform"></iconify-icon>
                         </div>
                         <p class="text-gray-400 text-sm font-bold tracking-wide uppercase mb-1">Trust Rating</p>
-                        <div class="flex items-end gap-1">
+                        <div class="flex items-end gap-1 mb-2">
                             <h3 class="text-4xl font-black">{{ "%.1f"|format(employee.rating or 0.0) }}</h3>
                             <span class="text-gray-500 text-xl font-bold mb-1">/5.0</span>
                         </div>
+                        <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider block">Click to view reviews</span>
                     </div>
                 </div>
                 {% endif %}
@@ -582,5 +583,50 @@
             });
         }, 5000);
     </script>
+    <!-- Trust Reviews & Ratings Modal -->
+    <div class="modal-overlay" id="reviewsModal">
+        <div class="bg-[#0f172a] border border-white/10 rounded-2xl p-8 w-full max-w-2xl relative shadow-2xl mx-4">
+            <button onclick="document.getElementById('reviewsModal').classList.remove('active')" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <iconify-icon icon="lucide:x" class="text-xl"></iconify-icon>
+            </button>
+            <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                <iconify-icon icon="lucide:star" class="text-amber-400"></iconify-icon> 
+                Trust Reviews & Ratings
+            </h3>
+            <p class="text-sm text-gray-400 mb-6">Here is what clients are saying about your service quality.</p>
+            
+            <div class="max-h-[60vh] overflow-y-auto space-y-4 pr-2">
+                {% set rated_reqs = service_requests | selectattr('rating', 'ne', none) | list %}
+                {% if rated_reqs %}
+                    {% for req in rated_reqs %}
+                    <div class="bg-slate-900/50 border border-white/5 rounded-xl p-5 hover:border-white/10 transition-all">
+                        <div class="flex justify-between items-start gap-4 mb-2">
+                            <div>
+                                <h4 class="font-extrabold text-sm text-white">{{ req.user_name }}</h4>
+                                <p class="text-xs text-gray-500">{{ req.user_gmail }}</p>
+                            </div>
+                            <div class="flex gap-0.5 bg-amber-400/10 border border-amber-400/20 px-2 py-1 rounded-lg items-center">
+                                {% for i in range(req.rating) %}
+                                <iconify-icon icon="lucide:star" class="text-xs text-amber-400"></iconify-icon>
+                                {% endfor %}
+                                <span class="text-xs font-bold text-amber-400 ml-1">{{ req.rating }}.0</span>
+                            </div>
+                        </div>
+                        {% if req.review %}
+                        <p class="text-sm text-gray-300 italic bg-white/[0.02] p-3 rounded-lg border border-white/5 mt-3">"{{ req.review }}"</p>
+                        {% else %}
+                        <p class="text-xs text-gray-500 italic mt-2">No written review left.</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="p-12 text-center bg-white/[0.02] border border-white/5 rounded-2xl">
+                        <iconify-icon icon="lucide:star-off" class="text-4xl text-gray-500 mb-3"></iconify-icon>
+                        <p class="text-sm text-gray-400">You haven't received any reviews yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </body>
 </html>
