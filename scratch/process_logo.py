@@ -22,14 +22,21 @@ def crop_and_clean_logo():
         datas = icon_only.getdata()
 
         # Detect background color from top-left pixel
-        bg_r, bg_g, bg_b, bg_a = datas[0]
+        bg_pixel = datas[0]
+        if isinstance(bg_pixel, tuple) and len(bg_pixel) >= 4:
+            bg_r, bg_g, bg_b, bg_a = bg_pixel[0], bg_pixel[1], bg_pixel[2], bg_pixel[3]
+        else:
+            bg_r, bg_g, bg_b, bg_a = 0, 0, 0, 0
         print(f"Background color: R={bg_r}, G={bg_g}, B={bg_b}")
 
         # Replace background color with transparent alpha
         new_data = []
         threshold = 35
         for item in datas:
-            r, g, b, a = item
+            if isinstance(item, tuple) and len(item) >= 4:
+                r, g, b, a = item[0], item[1], item[2], item[3]
+            else:
+                r, g, b, a = 0, 0, 0, 0
             dist = ((r - bg_r) ** 2 + (g - bg_g) ** 2 + (b - bg_b) ** 2) ** 0.5
             if dist < threshold:
                 new_data.append((0, 0, 0, 0))
@@ -47,7 +54,11 @@ def crop_and_clean_logo():
 
         for y in range(h_cropped):
             for x in range(w_cropped):
-                r, g, b, a = icon_only.getpixel((x, y))
+                pixel = icon_only.getpixel((x, y))
+                if isinstance(pixel, tuple) and len(pixel) >= 4:
+                    a = pixel[3]
+                else:
+                    a = 0
                 if a > 10:  # Non-transparent
                     if x < left: left = x
                     if x > right: right = x

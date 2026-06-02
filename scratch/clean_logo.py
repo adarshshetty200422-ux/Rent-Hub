@@ -23,7 +23,11 @@ def clean_logo():
     
     for y in range(height):
         for x in range(width):
-            r, g, b, a = cropped.getpixel((x, y))
+            pixel = cropped.getpixel((x, y))
+            if isinstance(pixel, tuple) and len(pixel) >= 4:
+                a = pixel[3]
+            else:
+                a = 0
             if a > 10:  # non-transparent
                 if x < left: left = x
                 if x > right: right = x
